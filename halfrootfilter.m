@@ -1,10 +1,10 @@
-function out_t=halfrootfilter(symb,cutf,rolloff, fs)
+function out_t=halfrootfilter(symbup,cutf,rolloff, fs, M)
 %% TO DO:
 % use a non rectangular window and take roll-off into account
 
 %% I/Os
 % INPUTS:
-% symb = column vector of symbols
+% symbup = column vector of symbols, already oversampled
 % cutf = cutoff frequency [Hz]
 % rolloff = roll-off factor
 % fs = sampling frequency
@@ -14,16 +14,13 @@ function out_t=halfrootfilter(symb,cutf,rolloff, fs)
 
 %% Rectangular window  (sinc in temporal domain)
 % mapping to discrete frequency: f_n = n * fs / N 
-M = 2; %upsampling factor
-figure; stem(symb);
-symbup = upsample(symb,M);
 figure;stem(symbup);
 N = length(symbup);
-filter_f = zeros(1,N);
-filter_f(1,1:N/M) = 1; %rectangle of amplitude sqrt(ts) that stops at cutoff
+filter_f = zeros(N,1);
+filter_f(1:N/M,1) = 1; %rectangle of amplitude sqrt(ts) that stops at cutoff
 %stem(filter_f);
 
-symb_f = fft(symb);
+symb_f = fft(symbup,N);
 fftshift(symb_f);
 
 %% Multiplication in frequency domain, then inverse Fourier transform
