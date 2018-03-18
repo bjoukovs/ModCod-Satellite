@@ -1,0 +1,8 @@
+clear all;
+close all;
+
+M = 16;
+bits_per_syù
+
+bits = randi(2,100,1);
+bits = bits -1
