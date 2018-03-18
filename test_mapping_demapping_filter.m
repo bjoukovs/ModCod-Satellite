@@ -11,7 +11,7 @@ bits = bits -1;
 modulation = "pam";
 %modulation = "qam";
 
-symb_tx = mapping(bits,bits_per_symbol,modulation)
+symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% Filter
 cutf = 1e6; %cutoff frequency
@@ -21,6 +21,7 @@ symb_tx = halfrootfilter(symb_tx,cutf,0,fs);
 %% DOWNSAMPLING
 M=2;
 symb_tx = downsample(symb_tx,M);
+figure;stem(symb_tx);
 
 
 
