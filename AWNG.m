@@ -33,9 +33,9 @@ noiseAmount = 20;%
 maxNoiseAmp = noiseAmount*diff/100;
 a = maxNoiseAmp;
 b = -maxNoiseAmp;
-
+symb_tx_noisy=zeros(length(symb_tx),1);
 %% Addition of the noise
-for  i = 1 : length(bitStream)
-    noiseValue = a + (b-a).*rand(100,1);
-    symb_tx_noisy(i) = symb_tx(i) + noiseValue; 
+for  i = 1 : length(symb_tx)
+    noiseValue = a + (b-a).*rand(1,1);
+    symb_tx_noisy(i,1) = symb_tx(i,1) + noiseValue; 
 end

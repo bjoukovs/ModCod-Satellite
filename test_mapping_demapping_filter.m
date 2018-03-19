@@ -14,23 +14,32 @@ modulation = 'pam';
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol M times
-M=2
-symb_tx = repelem(symb_tx,M)
+M=2;
+symb_tx = repelem(symb_tx,M);
 
-%% Filter
-cutf = 1e6; %cutoff frequency
+%% Rectangular Filter
+% cutf = 1e6; %cutoff frequency
+% fs = 2e6;
+% symb_tx = halfrootfilter(symb_tx,cutf,0,fs,M);
+
+%% Raised cosine filter
+beta = 0.3; %imposed
 fs = 2e6;
-symb_tx = halfrootfilter(symb_tx,cutf,0,fs,M);
+ts = 1/fs;
+figure(5)
+stem(symb_tx)
+symb_tx = halfroot_opti(symb_tx,M,beta,ts);
+
+%% Adding noise
+symb_tx_noisy = AWNG(symb_tx);
 
 %% DOWNSAMPLING
-symb_tx = downsample(symb_tx,M);
-figure;stem(symb_tx);
-
-
+symb_tx_noisy = downsample(symb_tx_noisy,M);
+figure(6);stem(symb_tx_noisy);
 
 %% DEMAPPING
 
-bits_rx = demapping(symb_tx,bits_per_symbol,modulation)
+bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation)
 
 %% Check error
 
