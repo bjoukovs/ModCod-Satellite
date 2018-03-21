@@ -1,0 +1,11 @@
+function out=halfroot_opti_v2(symbup,beta,T,fs,RRCTaps)
+
+if mod(RRCTaps,2)==0
+    RRCTaps=RRCTaps+1; %ensure that number of taps is odd
+end
+
+stepOffset=(1/RRCTaps)*fs;
+highestFreq=stepOffset*(RRCTtaps-1)/2;
+freqGrid=linspace(-highestFreq,highestFreq,RRCTaps);
+
+for 
