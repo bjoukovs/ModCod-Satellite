@@ -24,6 +24,7 @@ switch modulation,
         int_det(find(int_det>2^Nbps-1)) = 2^Nbps-1;
 
         % Integer to binary
+        %int_det
         mapp_rx  = fliplr(de2bi(int_det));
 
         % Binary to gray

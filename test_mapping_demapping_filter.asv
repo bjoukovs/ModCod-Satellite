@@ -5,7 +5,7 @@ fsymbol = 1e6;
 T = 1/fsymbol;
 
 fs = 2e6;
-ts = 1/fs;
+
 
 
 M = 16;

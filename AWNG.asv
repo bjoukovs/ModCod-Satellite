@@ -1,4 +1,4 @@
-function symb_tx_noisy = AWNG(symb_tx,EbN0, M, Fsamp, modulation)
+function symb_tx_noisy = AWNG(symb_tx,EbN0, M, Fsamp)
 
 
 %% Noise of the channel, AdditiveWhiteNoiseGaussian
@@ -18,25 +18,17 @@ Nbps = log2(M);
 Nbits = length(symb_tx)*Nbps;
 
 %Energy = integrale du signal au carré
-SignalEnergy = (trapz(abs(symb_tx).^2)); %this is power at baseband. power at RF must be devided by 2
+SignalEnergy = (1/Fsamp)*(trapz(abs(symb_tx).^2));
 %Bit energy, *0.5
 Eb = 0.5*(SignalEnergy/Nbits);
 
 %Noise power
-N0 = Eb / EbN0; %(per hertz)
-
+N0 = Eb / EbN0;
 NoisePower = 2*N0*Fsamp;
-if strcmp(modulation,'pam')
-    NoisePower = NoisePower/2; %Because we only simulate the real part
-end
 
 symb_tx_noisy=zeros(length(symb_tx),1);
 %% Addition of the noise
 for  i = 1 : length(symb_tx)
-    if strcmp(modulation, 'qam')==1
-        noiseValue = sqrt(NoisePower/2) * (randn(1, 1) + j*randn(1,1));
-    elseif strcmp(modulation, 'pam')==1
-        noiseValue = sqrt(NoisePower/2) * (randn(1, 1));
-    end
+    noiseValue = sqrt(NoisePower/2) * (randn(1, 1
     symb_tx_noisy(i,1) = symb_tx(i,1) + noiseValue; 
 end
