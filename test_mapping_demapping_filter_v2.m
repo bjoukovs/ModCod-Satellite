@@ -35,8 +35,8 @@ symb_tx = repelem(symb_tx,M);
 %% Raised cosine filter
 beta = 0.3; %imposed
 
-figure(5)
-stem(symb_tx)
+% figure(5)
+% stem(symb_tx)
 symb_tx = halfroot_opti_v2(symb_tx,beta,T,fs);
 
 % %% Adding noise

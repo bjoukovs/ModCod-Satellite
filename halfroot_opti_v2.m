@@ -1,21 +1,22 @@
 function out=halfroot_opti_v2(symbup,beta,T,fs)
 % RRCTaps = N ? No, it is a paramater that we choose to adjust the
 % precision of the filter
+
 RRCTaps = 101; %parameter
 
 if mod(RRCTaps,2)==0
     RRCTaps=RRCTaps+1; %ensure that number of taps is odd
 end
 
+%% Frequency Grid
 stepOffset=fs/RRCTaps;
 highestFreq=stepOffset*(RRCTaps-1)/2;
 freqGrid=linspace(-highestFreq,highestFreq,RRCTaps);
 
-H=zeros(length(freqGrid),1); %we just take the positive frequencies
-% H(1:(1-beta)/(2*T),1)=T;
-% for f=(1-beta)/(2*T):(1+beta)/(2*T)
-%     H(f,1) = (T/2)*(1+cos((pi*T/beta)*(f-(1-beta)/(2*T))));
-% end
+%% Construct filter H
+H=zeros(length(freqGrid),1); 
+% Creation of H by making the correspondance between the frequencies and
+% the index of the loop (index i) with freqGrid(i) 
 for i=1:RRCTaps
     if abs(freqGrid(i))<=(1-beta)/(2*T)
         H(i,1)=T;
@@ -25,17 +26,27 @@ for i=1:RRCTaps
 end
 %the rest is made of zeros
 
+%% Normalizing and taking the square root
 h = ifft(H,'symmetric');
 h = h/h(1);
 H = fft(h);
 H = sqrt(H); %halfroot
+
+figure(11); plot(freqGrid,H);
+
+%% Going in temporal domain
+Delta_t = 1/fs;
+t = (-(RRCTaps-1)/2:(RRCTaps-1)/2)*Delta_t;
+% shift h of 1 unit to the left with t=[t(1) t] and h=[h;h(end)], because
+% small error of shift
+t=[t(1) t];
 h = ifftshift(ifft(H,'symmetric'));
+h=[h;h(end)];
 
-%figure(10); stem(h);
-%figure(10); stem(h);
-figure(11); stem(H);
-
-h_tot=conv(h,h);
-figure(12);plot(h_tot)
-
+%% Check if filter is ok by seeing if zeros crossings are at each T
+h_tot=conv(h,h,'same');
+figure(12);plot(t,h_tot); hold on;
+T_check=-T*length(t)/2:T:T*length(t)/2;
+plot(T_check,zeros(length(T_check)),'-'); hold on;
+plot(T_check,zeros(length(T_check)),'x');
     

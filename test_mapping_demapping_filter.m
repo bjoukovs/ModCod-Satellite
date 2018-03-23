@@ -39,6 +39,7 @@ ts = 1/fs;
 EbN0 = logspace(1,15);
 BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
+    
     %% Adding noise
     symb_tx_noisy = AWNG(symb_tx,EbN0(1,i),M,U*fs,modulation);
 
