@@ -1,4 +1,4 @@
-function out=halfroot_opti_v2(symbup,beta,T,fs)
+function out = halfroot_opti_v2(symbup,beta,T,fs)
 % RRCTaps = N ? No, it is a paramater that we choose to adjust the
 % precision of the filter
 
@@ -44,9 +44,11 @@ h = ifftshift(ifft(H,'symmetric'));
 h=[h;h(end)];
 
 %% Check if filter is ok by seeing if zeros crossings are at each T
-h_tot=conv(h,h,'same');
-figure(12);plot(t,h_tot); hold on;
-T_check=-T*length(t)/2:T:T*length(t)/2;
-plot(T_check,zeros(length(T_check)),'-'); hold on;
-plot(T_check,zeros(length(T_check)),'x');
+% h_tot=conv(h,h,'same');
+% figure(12);plot(t,h_tot); hold on;
+% T_check=-T*length(t)/2:T:T*length(t)/2;
+% plot(T_check,zeros(length(T_check)),'-'); hold on;
+% plot(T_check,zeros(length(T_check)),'x');
+
+out = conv(symbup, h, 'same');
     

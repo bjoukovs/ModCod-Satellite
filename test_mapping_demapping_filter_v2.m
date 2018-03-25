@@ -7,10 +7,10 @@ T=1/fsymbol;
 fs = 2e6;
 ts = 1/fs;
 
-M = 16;
+M = 4;
 bits_per_symbol = log2(M)
 
-bits = randi(2,bits_per_symbol*100,1);
+bits = randi(2,bits_per_symbol*1000,1); %1k symbols
 
 SignalEnergy = (trapz(abs(bits).^2))*1/fs;
 Eb = SignalEnergy/length(bits)/2;
@@ -23,35 +23,41 @@ modulation = 'pam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
-%% OVERSAMPLING = replicating each symbol M times
-M=2;
-symb_tx = repelem(symb_tx,M);
+%% OVERSAMPLING = replicating each symbol U times
+U=10;
+symb_tx = repelem(symb_tx,U);
 
-%% Rectangular Filter
-% cutf = 1e6; %cutoff frequency
-% fs = 2e6;
-% symb_tx = halfrootfilter(symb_tx,cutf,0,fs,M);
+%% Loop for different bit energies +  calculating BER
+EbN0 = logspace(1,15);
+BER = zeros(length(EbN0),1);
+for i=1:length(EbN0)
+    % First half root filter
+    beta = 0.3; %imposed
+    symb_tx = halfroot_opti_v2(symb_tx,beta,T,fs); %ATTENTION fs ou U*Fs ?
+    
+    
+    % Adding noise
+    symb_tx_noisy = AWNG(symb_tx,EbN0(1,i),M,U*fs,modulation);
+    
+    
+    % Second half root filter
+    beta = 0.3; %imposed
+    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
+    
 
-%% Raised cosine filter
-beta = 0.3; %imposed
+    % DOWNSAMPLING
+    symb_tx_noisy = downsample(symb_tx_noisy,U);
+    
 
-% figure(5)
-% stem(symb_tx)
-symb_tx = halfroot_opti_v2(symb_tx,beta,T,fs);
+    % DEMAPPING
+    bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
+    
 
-% %% Adding noise
-% symb_tx_noisy = AWNG(symb_tx);
-% 
-% %% Filtering at reception
-% symb_rx = halfroot_opti(symb_tx_noisy,M,beta,ts);
-% %% DOWNSAMPLING
-% symb_rx = downsample(symb_rx,M);
-% figure(6);stem(symb_rx);
-% 
-% %% DEMAPPING
-% 
-% bits_rx = demapping(symb_rx,bits_per_symbol,modulation);
-% 
-% %% Check error
-% 
-% error_norm = norm(bits_rx - bits);
+    % Check error
+    BER(i) = bit_error_rate(bits, bits_rx);
+    
+end
+
+loglog(EbN0,BER);
+xlabel("Eb/N0");
+ylabel("Bit error rate");
