@@ -1,4 +1,5 @@
 function out = halfroot_opti_v2(symbup,beta,T,fs)
+% fs is the sampling frequncy of the already upsampled signal (symbup)
 % RRCTaps = N ? No, it is a paramater that we choose to adjust the
 % precision of the filter
 
@@ -36,17 +37,17 @@ figure(11); plot(freqGrid,H);
 
 %% Going in temporal domain
 Delta_t = 1/fs;
-t = (-(RRCTaps-1)/2:(RRCTaps-1)/2)*Delta_t;
+t = linspace((-(RRCTaps-1)/2)*Delta_t,((RRCTaps-1)/2)*Delta_t,RRCTaps);
 % shift h of 1 unit to the left with t=[t(1) t] and h=[h;h(end)], because
 % small error of shift
-t=[t(1) t];
-h = ifftshift(ifft(H,'symmetric'));
-h=[h;h(end)];
+%t=[t(1) t];
+h = ifft(ifftshift(H),'symmetric');
+%h=[h;h(end)];
 
 %% Check if filter is ok by seeing if zeros crossings are at each T
 % h_tot=conv(h,h,'same');
 % figure(12);plot(t,h_tot); hold on;
-% T_check=-T*length(t)/2:T:T*length(t)/2;
+% T_check=-T*3:T:T*3;
 % plot(T_check,zeros(length(T_check)),'-'); hold on;
 % plot(T_check,zeros(length(T_check)),'x');
 

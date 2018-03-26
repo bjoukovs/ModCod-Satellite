@@ -10,7 +10,9 @@ ts = 1/fs;
 M = 4;
 bits_per_symbol = log2(M)
 
-bits = randi(2,bits_per_symbol*1000,1); %1k symbols
+bits = randi(2,bits_per_symbol*10,1); %1k symbols
+%bits = ones(bits_per_symbol*10,1); %1k symbols
+%bits(5) = 0;
 
 SignalEnergy = (trapz(abs(bits).^2))*1/fs;
 Eb = SignalEnergy/length(bits)/2;
@@ -24,16 +26,16 @@ modulation = 'pam';
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-U=10;
+U=5;
 symb_tx = repelem(symb_tx,U);
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(1,15);
+EbN0 = logspace(1,10);
 BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
     % First half root filter
     beta = 0.3; %imposed
-    symb_tx = halfroot_opti_v2(symb_tx,beta,T,fs); %ATTENTION fs ou U*Fs ?
+    symb_tx = halfroot_opti_v2(symb_tx,beta,T,U*fs); %ATTENTION fs ou U*Fs ?
     
     
     % Adding noise
@@ -42,7 +44,8 @@ for i=1:length(EbN0)
     
     % Second half root filter
     beta = 0.3; %imposed
-    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
+    
+    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,U*fs);
     
 
     % DOWNSAMPLING
@@ -55,6 +58,10 @@ for i=1:length(EbN0)
 
     % Check error
     BER(i) = bit_error_rate(bits, bits_rx);
+    
+    bits
+    bits_rx
+    return
     
 end
 
