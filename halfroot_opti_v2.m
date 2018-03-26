@@ -30,6 +30,12 @@ end
 %% Normalizing and taking the square root
 h = ifft(H,'symmetric');
 h = h/h(1);
+Delta_t = 1/fs;
+figure(12);plot(t,h); hold on;
+T_check=-T*3:T:T*3;
+plot(T_check,zeros(length(T_check)),'-'); hold on;
+plot(T_check,zeros(length(T_check)),'x');
+
 H = fft(h);
 H = sqrt(H); %halfroot
 
@@ -45,11 +51,11 @@ h = ifft(ifftshift(H),'symmetric');
 %h=[h;h(end)];
 
 %% Check if filter is ok by seeing if zeros crossings are at each T
-% h_tot=conv(h,h,'same');
-% figure(12);plot(t,h_tot); hold on;
-% T_check=-T*3:T:T*3;
-% plot(T_check,zeros(length(T_check)),'-'); hold on;
-% plot(T_check,zeros(length(T_check)),'x');
+h_tot=conv(h,h,'same');
+figure(13);plot(t,h_tot); hold on;
+T_check=-T*3:T:T*3;
+plot(T_check,zeros(length(T_check)),'-'); hold on;
+plot(T_check,zeros(length(T_check)),'x');
 
 out = conv(symbup, h, 'same');
     
