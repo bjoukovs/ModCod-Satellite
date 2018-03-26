@@ -31,6 +31,8 @@ end
 h = ifft(H,'symmetric');
 h = h/h(1);
 Delta_t = 1/fs;
+t = linspace((-(RRCTaps-1)/2)*Delta_t,((RRCTaps-1)/2)*Delta_t,RRCTaps);
+%t=(-(RRCTaps-1)/2:(RRCTaps-1)/2)*Delta_t;
 figure(12);plot(t,h); hold on;
 T_check=-T*3:T:T*3;
 plot(T_check,zeros(length(T_check)),'-'); hold on;
