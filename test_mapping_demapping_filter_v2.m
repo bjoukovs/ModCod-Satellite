@@ -4,13 +4,13 @@ close all;
 fsymbol=1e6;
 T=1/fsymbol;
 
-fs = 2e6;
+fs = 1e6;
 ts = 1/fs;
 
 M = 4;
 bits_per_symbol = log2(M)
 
-bits = randi(2,bits_per_symbol*10,1); %1k symbols
+bits = randi(2,bits_per_symbol*1000,1); %1k symbols
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
 
@@ -20,17 +20,17 @@ Eb = SignalEnergy/length(bits)/2;
 bits = bits -1;
 
 %% MAPPING
-modulation = 'pam';
-%modulation = "qam";
+%modulation = 'pam';
+modulation = "qam";
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-U=5;
-symb_tx = repelem(symb_tx,U);
+U=10;
+symb_tx = upsample(symb_tx,U);
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(1,10);
+EbN0 = logspace(1,8,100);
 BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
     % First half root filter
@@ -58,11 +58,7 @@ for i=1:length(EbN0)
 
     % Check error
     BER(i) = bit_error_rate(bits, bits_rx);
-    
-    bits
-    bits_rx
-    return
-    
+    return 
 end
 
 loglog(EbN0,BER);
