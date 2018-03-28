@@ -32,17 +32,19 @@ h = fftshift(ifft(ifftshift(H),'symmetric'));
 h = h/max(h);
 Delta_t = 1/fs;
 t = linspace((-(RRCTaps-1)/2)*Delta_t,((RRCTaps-1)/2)*Delta_t,RRCTaps);
-%t=(-(RRCTaps-1)/2:(RRCTaps-1)/2)*Delta_t;
-figure(12);plot(t,h); hold on;
-stem(t,h);
-T_check=-T*3:T:T*3;
-plot(T_check,zeros(length(T_check)),'-'); hold on;
-plot(T_check,zeros(length(T_check)),'x');
+t=(-(RRCTaps-1)/2:(RRCTaps-1)/2)*Delta_t;
+% figure(12);plot(t,h); hold on;
+% stem(t,h);
+% T_check=-T*3:T:T*3;
+% plot(T_check,zeros(length(T_check)),'-'); hold on;
+% plot(T_check,zeros(length(T_check)),'x');
 
+%Hsave=fft(ifftshift(h));
+%figure(20);plot(freqGrid,Hsave);
 H = fftshift(fft(ifftshift(h)));
 H(:) = sqrt(H(:)); %halfroot
 
-figure(11); plot(freqGrid,H);
+%figure(11); plot(freqGrid,H);
 
 %% Going in temporal domain
 Delta_t = 1/fs;
@@ -51,16 +53,21 @@ t = linspace((-(RRCTaps-1)/2)*Delta_t,((RRCTaps-1)/2)*Delta_t,RRCTaps);
 % small error of shift
 %t=[t(1) t];
 h = fftshift(ifft(ifftshift(H),'symmetric'));
-figure(14);stem(t,h); hold on;
-plot(t,h)
+%figure(14);stem(t,h); hold on;
+%plot(t,h)
 %h=[h;h(end)];
 
 %% Check if filter is ok by seeing if zeros crossings are at each T
-h_tot=conv(h,h,'same');
-figure(13);stem(t,h_tot); hold on;
-T_check=-T*3:T:T*3;
-plot(T_check,zeros(length(T_check)),'-'); hold on;
-plot(T_check,zeros(length(T_check)),'x');
+% h_tot=conv(h,h,'same');
+% figure(13);stem(t,h_tot); hold on;
+% T_check=-T*3:T:T*3;
+% plot(T_check,zeros(length(T_check)),'-'); hold on;
+% plot(T_check,zeros(length(T_check)),'x');
 
-out = conv(symbup, h, 'same');
-    
+out = conv(symbup,h,'same');
+
+%% Filtering in frequency domain
+% symbup_f=fftshift(fft(symbup));
+% figure(21);stem(symbup);
+% out_f = H.*symbup_f(length(H)/2-25:length(H)+25,:)
+% out=ifft(ifftshift(out_f));

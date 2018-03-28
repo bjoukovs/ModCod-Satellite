@@ -14,11 +14,11 @@ function symb_tx_noisy = AWNG(symb_tx,EbN0, M, Fsamp, modulation)
 
 %% Evaluation of the noise value
 
-Nbps = log2(M);
-Nbits = length(symb_tx)*Nbps;
+Nbpsymb = log2(M);
+Nbits = length(symb_tx)*Nbpsymb;
 
 %Energy = integrale du signal au carré
-SignalEnergy = (trapz(abs(symb_tx).^2)); %this is power at baseband. power at RF must be devided by 2
+SignalEnergy = trapz(abs(symb_tx).^2); %this is power at baseband. power at RF must be devided by 2
 %Bit energy, *0.5
 Eb = 0.5*(SignalEnergy/Nbits);
 

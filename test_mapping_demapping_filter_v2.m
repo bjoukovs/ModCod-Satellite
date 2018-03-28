@@ -10,18 +10,18 @@ ts = 1/fs;
 M = 4;
 bits_per_symbol = log2(M)
 
-bits = randi(2,bits_per_symbol*1000,1); %1k symbols
+bits = randi(2,bits_per_symbol*2000,1); %1k symbols
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
 
-SignalEnergy = (trapz(abs(bits).^2))*1/fs;
+SignalEnergy = (trapz(abs(bits).^2));
 Eb = SignalEnergy/length(bits)/2;
 
 bits = bits -1;
 
 %% MAPPING
-%modulation = 'pam';
-modulation = "qam";
+modulation = 'pam';
+%modulation = "qam";
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
@@ -30,16 +30,18 @@ U=10;
 symb_tx = upsample(symb_tx,U);
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(1,8,100);
+EbN0 = logspace(0.1,8,100);
+%EbN0 = linspace(0,100,100)
+%EbN0=1:1:100;
 BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
     % First half root filter
     beta = 0.3; %imposed
-    symb_tx = halfroot_opti_v2(symb_tx,beta,T,U*fs); %ATTENTION fs ou U*Fs ?
+    symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,U*fs); %ATTENTION fs ou U*Fs ?
     
     
     % Adding noise
-    symb_tx_noisy = AWNG(symb_tx,EbN0(1,i),M,U*fs,modulation);
+    symb_tx_noisy = AWNG(symb_tx_filtered,EbN0(1,i),M,U*fs,modulation);
     
     
     % Second half root filter
@@ -58,9 +60,10 @@ for i=1:length(EbN0)
 
     % Check error
     BER(i) = bit_error_rate(bits, bits_rx);
-    return 
+     
 end
 
-loglog(EbN0,BER);
-xlabel("Eb/N0");
+figure;
+semilogy(10*log10(EbN0),BER);
+xlabel("Eb/N0 (dB)");
 ylabel("Bit error rate");
