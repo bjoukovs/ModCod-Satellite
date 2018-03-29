@@ -18,7 +18,7 @@ Nbpsymb = log2(M);
 Nbits = length(symb_tx)*Nbpsymb;
 
 %Energy = integrale du signal au carré
-SignalEnergy = trapz(abs(symb_tx).^2); %this is power at baseband. power at RF must be devided by 2
+SignalEnergy = 1/Fsamp*trapz(abs(symb_tx).^2); %this is power at baseband. power at RF must be devided by 2
 %Bit energy, *0.5
 Eb = 0.5*(SignalEnergy/Nbits);
 
