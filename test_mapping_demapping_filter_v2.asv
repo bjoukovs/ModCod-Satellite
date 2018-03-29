@@ -44,16 +44,16 @@ EbN0 = logspace(-0.4,2,100);
 BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
     BER_moyen(i)=0;
-    for j=1:10
+    for j=1:5
     % First half root filter
     beta = 0.3; %imposed
-    %symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,U*fs); %ATTENTION fs ou U*Fs ?
+    symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,U*fs); %ATTENTION fs ou U*Fs ?
     %figure;
     %stem(symb_tx_filtered)
     
     
     % Adding noise
-    symb_tx_noisy = AWNG(symb_tx,EbN0(1,i),M,U*fs,modulation);
+    symb_tx_noisy = AWNG(symb_tx_filtered,EbN0(1,i),M,U*fs,modulation);
     %figure;
     %stem(symb_tx_noisy)
     
@@ -61,7 +61,7 @@ for i=1:length(EbN0)
     % Second half root filter
     beta = 0.3; %imposed
     
-    %symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,U*fs);
+    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,U*fs);
     %figure;
     %stem(symb_tx_noisy)
     
@@ -80,11 +80,10 @@ for i=1:length(EbN0)
     BER(i) = bit_error_rate(bits, bits_rx);
     BER_moyen(i)=BER_moyen(i)+bit_error_rate(bits, bits_rx);
     end
-    BER_moyen(i)=BER_moyen(i)/5;
+    BER_mi
 end
 
 figure;
 semilogy(10*log10(EbN0),BER);
-figure(25);semilogy(10*log10(EbN0),BER_moyen);
 xlabel("Eb/N0 (dB)");
 ylabel("Bit error rate");
