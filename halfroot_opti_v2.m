@@ -3,7 +3,8 @@ function out = halfroot_opti_v2(symbup,beta,T,fs)
 % RRCTaps = N ? No, it is a paramater that we choose to adjust the
 % precision of the filter
 
-RRCTaps = 101; %parameter
+RRCTaps = 101; %parameter DOIT DEPENDRE DU OVERSAMPLING FACTOR: au + il y a d'oversampling
+                % au plus il faut augmenter le nbre de filter taps (faire une dépendance proportionelle)
 
 if mod(RRCTaps,2)==0
     RRCTaps=RRCTaps+1; %ensure that number of taps is odd
