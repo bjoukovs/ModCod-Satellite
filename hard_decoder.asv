@@ -1,0 +1,10 @@
+function out=hard_decoder(H)
+
+[r,c]=size(H);
+
+for check=1:r
+    temp=H(check);
+    for i=1:length(temp)
+        
+    
+    
