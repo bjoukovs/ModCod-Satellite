@@ -17,29 +17,34 @@ function out=hard_decoder(H,y,maxit)
 
         %f is a column vector containing the modulo sum of the variable nodes
         %linked to the cheker node f(i) (slide 10 modulo sum c0 + c1 + c2 + c5 =? 0)
-        f=mod(H*y',2);
+        %f=mod(H*y',2);
 
         %This loop implements what is done in slide 13
+        
+        % We do a loop for every Hij which is non null (corresponds to one
+        % evaluation of the nodes)
         for i=1:row
-            %If f(i) = 1 it means that the modulo sum is different from 0 and then
-            %that the bit should change its value acording to this cheker done:
-            %increments the nbre0 or nbr1 parameter of c{j} depending on the value
-            %of c{j}(1), the original value, the y(j)
-            if f(i)==1
-                for j=1:col
-                    if H(i,j)==1
-                        %to know if we have to increment nbre0 or nbre1, i.e. if we
-                        %have to increment at index 2 (-->nbre0) or index 3(-->nbre1)
-                        %of c{j}, we take the index equal to 2 + the modulo of [ the original value c{j}(1)
-                        %(i.e. y(j)) + 1 ]
-                        c{j}(2+mod(c{j}(1)+1,2)) = c{j}(2+mod(c{j}(1)+1,2)) + 1;
-                    end
-                end
-            else %if f(i)=0 then increment nbre0 if y(j)=0 and nbre1 if y(j)=1, so it means that the checker node
-                 %tells the variable node to keep its original value
-                for j=1:col
-                    if H(i,j)==1
-                        c{j}(2 + c{j}(1)) = c{j}(2 + c{j}(1)) + 1;
+            
+            for j=1:col
+                if H(i,j)==1
+                    
+                    %calculate syndrome WITHOUT the validation node j (tip:
+                    %we do it only for the check node i to save time.) Do't
+                    subH = horzcat(H(i,1:j-1),H(i,j+1:end));
+                    subY = horzcat(y(1:j-1),y(j+1,end));
+                    
+                    parcheck = mod(subH*suby',2);
+                    
+                    if parcheck==0
+                       %In this case, the validation node j should be 0 so
+                       %the results stays 0
+                       c{j}(2) = c{j}(2) + 1;
+                       
+                    else
+                        %In this case, the validation node j should be 1 so
+                        %the results flips
+                        
+                        c{j}(3) = c{j}(3) + 1;
                     end
                 end
             end
