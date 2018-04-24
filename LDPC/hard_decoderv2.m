@@ -14,7 +14,11 @@ function out=hard_decoder(H,y,maxit)
     nextInput = y;
     
     while it<maxit
-        it = it + 1
+        it = it + 1;
+        
+        %for k=1:length(y)
+        %    c{k}(1)=nextInput(k); %[valeur,nbre0,nbre1]
+        %end
         
         % We do a loop for every Hij which is non null (corresponds to one
         % message that need to be sent back to the validation node j)
@@ -27,7 +31,7 @@ function out=hard_decoder(H,y,maxit)
                     %we do it only for the check node i to save time.)
                     %Don't forget to discard the validation node j !
                     subH = horzcat(H(i,1:j-1),H(i,j+1:end));
-                    subY = horzcat(y(1:j-1),y(j+1:end));
+                    subY = horzcat(nextInput(1:j-1),nextInput(j+1:end));
                     
                     parcheck = mod(subH*subY',2);
                     

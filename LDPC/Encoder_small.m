@@ -27,18 +27,17 @@ mod(G*H', 2) %check property
 
 errors=0;
 
-for i=1:1
-
-    bits = randi(2,[1,5]) - ones(1,5)
-    %code = [1     1     1     0     0     0     0     0     1     0]
-    code = mod(bits*G,2)
-    original=code;
-    %code = [1     1     1     0     1     0     0     0     1     0]
-    x = randi(10);
-    code(x) = 1-code(x)
-    received = hard_decoderv2(H,code,10)
+for i=1:10000
     
-    errors = errors + nnz(mod(received-original,2));
+    
+    bits = randi(2,[1,5]) - ones(1,5);
+    code = mod(bits*G,2);
+    original=code;
+    x = randi(10);
+    code(x) = 1-code(x);
+    received = hard_decoderv2(H,code,50);
+    
+    errors = errors + (nnz(mod(received-original,2)) ~= 0);
     
 end
 
