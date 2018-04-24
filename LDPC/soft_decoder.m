@@ -32,7 +32,10 @@ function out=soft_decoder(H,y,maxit,sigma)
         for i=1:row
             for j=1:col
                 if H(i,j)==1
-                    
+                    % ATTENTION PAS BON PCQ IL Y A DES ELEMENTS NULS ET
+                    % DONC LE PRODUIT VA ETRE NUL, ALORS QUE NORMALEMENT IL
+                    % FAUT IGNORER LES ELEMENTS NULS
+              
                     subQ = (ones(row-1,1) - vertcat( Q1(1:i-1,j), Q1(i+1:end,j) )); %On prend la j colonne, on retire la ligne i
                     
                     R0(j,i) = 0.5 + 0.5*prod(subQ);
