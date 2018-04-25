@@ -1,4 +1,5 @@
-function out=hard_decoder(H,y,maxit)
+function out=hard_decoder(H,y,maxit,subH_cell)
+%subH_cell is a cell containing the subH matrices, to gain time 
 
     it=0;
     [row,col]=size(H);
@@ -30,7 +31,8 @@ function out=hard_decoder(H,y,maxit)
                     %calculate syndrome WITHOUT the validation node j (tip:
                     %we do it only for the check node i to save time.)
                     %Don't forget to discard the validation node j !
-                    subH = horzcat(H(i,1:j-1),H(i,j+1:end));
+                    %subH = horzcat(H(i,1:j-1),H(i,j+1:end));
+                    subH=subH_cell{i,j};
                     subY = horzcat(nextInput(1:j-1),nextInput(j+1:end));
                     
                     parcheck = mod(subH*subY',2);
@@ -66,7 +68,10 @@ function out=hard_decoder(H,y,maxit)
         
         nextInput = out;
 
-        if nnz(mod(H*out',2))==0
+%         if nnz(mod(H*out',2))==0
+%             break
+%         end
+        if nnz(mod(out*H',2))==0
             break
         end
     end

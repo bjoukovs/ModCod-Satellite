@@ -1,5 +1,6 @@
 clear all;
 close all;
+addpath('LDPC');
 
 format long
 
@@ -13,20 +14,34 @@ ts = 1/fs;
 M = 64;
 bits_per_symbol = log2(M)
 
-bits = randi(2,bits_per_symbol*100000,1); %100k symbols
+blocklength=64;
+bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+% ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
 
-SignalEnergy = (trapz(abs(bits).^2));
-Eb = SignalEnergy/length(bits)/2;
-
 bits = bits -1;
+
+%%%% CHANNEL CODING %%%%%
+encoded_message=[];
+H0 = makeLdpc(blocklength,2*blocklength,0,1,3);   %128*256 H -> encodes 128 bits
+for i=1:length(bits)/blocklength %we divide the bits in blocks of 128
+    i
+    [codedbits, H] = makeParityChk(bits((i-1)*blocklength+1:i*blocklength,1), H0, 0); 
+    encoded_message = [encoded_message;codedbits;bits((i-1)*blocklength+1:i*blocklength,1)];
+end
+% We divided the message in blocks of 128 bits, added 128 bits of
+% redundancy, thus we end with a sequence encoded_message that is twice as
+% long as the bits
+
+%ATTENTION H remains the same
+%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
 %modulation = 'pam';
 modulation = 'qam';
 
-symb_tx = mapping(bits,bits_per_symbol,modulation);
+symb_tx = mapping(encoded_message,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
 U=4;
@@ -38,8 +53,23 @@ symb_tx = upsample(symb_tx,U);
 
 %BER_moyen=[];
 
+%% Computing different parts of H with removed columns
+[row,col]=size(H);
+subH_cell=cell(row,col);
+for i=1:row
+    for j=1:col
+        if H(i,j)==1
+            %calculate syndrome WITHOUT the validation node j (tip:
+            %we do it only for the check node i to save time.)
+            %Don't forget to discard the validation node j !
+            subH_cell{i,j} = horzcat(H(i,1:j-1),H(i,j+1:end));
+        end
+    end
+end
+
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,2,100);
+EbN0 = logspace(-0.4,2,10);
+%EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
 %EbN0=1:1:100;
 BER = zeros(length(EbN0),1);
@@ -76,9 +106,23 @@ for i=1:length(EbN0)
     % DEMAPPING
     bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
     
+    %%%%%%%%%%%%%%% CHANNEL DECODING %%%%%%%%%%%%%%%%%%%%
+    % Now we have to cut in blocks of 2*128 bits to take the redundancy
+    bits_rx_dec=[];
+
+    for j=1:length(bits_rx)/(2*blocklength)
+        j
+        received = hard_decoderv2(H,bits_rx((j-1)*blocklength*2+1:j*blocklength*2,1)',35,subH_cell);
+        received=received';
+        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; 
+        %here we take only the second part of each decoded block since it
+        %contains the message without redundancy
+    end
+    
+    
 
     % Check error
-    BER(i) = bit_error_rate(bits, bits_rx);
+    BER(i) = bit_error_rate(bits, bits_rx_dec);
     %BER_moyen(i)=BER_moyen(i)+bit_error_rate(bits, bits_rx);
     %end
     %BER_moyen(i)=BER_moyen(i)/5;
