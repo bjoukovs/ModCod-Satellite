@@ -36,7 +36,7 @@ for i=1:1
     x = randi(10);
     code(x) = 1-code(x);
     %received = hard_decoderv2(H,code,50);
-    received = soft_decoder(H,code',10,1);
+    received = soft_decoder_log(H,code',10,1);
     received = received;
     
     errors = errors + (nnz(mod(received-original,2)) ~= 0);
