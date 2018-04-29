@@ -38,14 +38,8 @@ function out=hard_decoder(H,y,maxit,subH_cell)
                     parcheck = mod(subH*subY',2);
                     
                     if parcheck==0
-                       %In this case, the validation node j should be 0 so
-                       %the results stays 0
                        c{j}(2) = c{j}(2) + 1;
-                       
-                    else
-                        %In this case, the validation node j should be 1 so
-                        %the results flips
-                        
+                    else                       
                         c{j}(3) = c{j}(3) + 1;
                     end
                 end

@@ -11,11 +11,11 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 64;
+M = 16;
 bits_per_symbol = log2(M)
 
-blocklength=64;
-bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+blocklength=32;
+bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -38,8 +38,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-%modulation = 'pam';
-modulation = 'qam';
+modulation = 'pam';
+%modulation = 'qam';
 
 symb_tx = mapping(encoded_message,bits_per_symbol,modulation);
 
@@ -69,6 +69,7 @@ end
 
 %% Loop for different bit energies +  calculating BER
 EbN0 = logspace(-0.4,2,10);
+
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
 %EbN0=1:1:100;
@@ -84,7 +85,9 @@ for i=1:length(EbN0)
     
     
     % Adding noise
-    symb_tx_noisy = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
+    symb_tx_noisy = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(encoded_message));
+    % length(encoded_message) or length(bits) in last argument of AWNG?
+    
     %figure;
     %stem(symb_tx_noisy)
     
@@ -114,7 +117,7 @@ for i=1:length(EbN0)
         j
         received = hard_decoderv2(H,bits_rx((j-1)*blocklength*2+1:j*blocklength*2,1)',35,subH_cell);
         received=received';
-        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; 
+        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; %to take only the information bits (not the redudancy)
         %here we take only the second part of each decoded block since it
         %contains the message without redundancy
     end
