@@ -16,7 +16,7 @@ function out=hard_decoder(H,y,maxit,subH_cell)
     
     %a changer : 
     %Ne pas cumuler les réponses d'une itération à l'autres !!!
-    %plutot faire un compteur -1 +1 -> faire la somme pour la décision
+    %plutot faire un compteur -1 +1 
     % Garder en mémoire les réponses des check nodes vers les variables
     % nodes
     % car il faut calculer la réponse des variable nodes vers les check

@@ -34,6 +34,9 @@ end
 % redundancy, thus we end with a sequence encoded_message that is twice as
 % long as the bits
 
+% On peut tout calculer en une fois en mettant les séquences de bits en
+% colonnes dans une matrice (reshape)
+
 %ATTENTION H remains the same
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -66,6 +69,8 @@ for i=1:row
         end
     end
 end
+
+
 
 %% Loop for different bit energies +  calculating BER
 EbN0 = logspace(-0.4,2,10);

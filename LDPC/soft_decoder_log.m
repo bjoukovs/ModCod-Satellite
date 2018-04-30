@@ -3,6 +3,9 @@ function out=soft_decoder_log(H,y,maxit,sigma)
     %Definition of phi function
     phi = @(x) log10((exp(x)+1)./(exp(x)-1));
     
+    %ATTENTION PRENDRE DIRECTEMENT LES SYMBOLES BPSK (partie réelle)
+    %(-2*symboles) erreur sur le signe, prendre le moins
+    
     %Translate 0 into -1
     for i=1:length(y)
 
@@ -52,6 +55,10 @@ function out=soft_decoder_log(H,y,maxit,sigma)
          end
      end
      
+      %Log-likelyhood ratio
+    PI = 1./(1+exp(2*c./sigma^2));
+    LCI = log10((1-PI)./PI);
+     
      
      %Start iterating
      while it<maxit
@@ -59,10 +66,6 @@ function out=soft_decoder_log(H,y,maxit,sigma)
         
         BETA = abs(Q);
         ALPHA = sign(Q);
-        
-        %Log-likelyhood ratio
-        PI = 1./(1+exp(2*c./sigma^2));
-        LCI = log10((1-PI)./PI);
         
         %Decision
         LQ = zeros(col,1);
