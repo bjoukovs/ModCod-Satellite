@@ -1,4 +1,4 @@
-function symb_tx_noisy = AWNG(symb_tx,EbN0, M, Fsamp, modulation,Nbits)
+function [symb_tx_noisy sigma] = AWNG(symb_tx,EbN0, M, Fsamp, modulation,Nbits)
 
 
 %% Noise of the channel, AdditiveWhiteNoiseGaussian
@@ -29,6 +29,7 @@ Eb = 0.5*(SignalEnergy/Nbits);
 N0 = Eb / EbN0; %(per hertz)
 
 NoisePower = 2*N0*Fsamp;
+sigma = sqrt(NoisePower);
 % if strcmp(modulation,'pam')
 %     NoisePower = NoisePower/2; %Because we only simulate the real part
 % end

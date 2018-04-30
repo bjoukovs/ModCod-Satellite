@@ -15,10 +15,7 @@ M = 2;
 bits_per_symbol = log2(M)
 
 blocklength=32;
-bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
-% ATTENTION put more than bits_per_symbol*100*blocklength
-%bits = ones(bits_per_symbol*10,1); %1k symbols
-%bits(5) = 0;
+bits = randi(2,bits_per_symbol*1000*blocklength,1); %100k symbols
 
 bits = bits -1;
 
@@ -54,26 +51,10 @@ symb_tx = upsample(symb_tx,U);
 %figure;
 %stem(symb_tx)
 
-%BER_moyen=[];
-
-%% Computing different parts of H with removed columns
-[row,col]=size(H);
-subH_cell=cell(row,col);
-for i=1:row
-    for j=1:col
-        if H(i,j)==1
-            %calculate syndrome WITHOUT the validation node j (tip:
-            %we do it only for the check node i to save time.)
-            %Don't forget to discard the validation node j !
-            subH_cell{i,j} = horzcat(H(i,1:j-1),H(i,j+1:end));
-        end
-    end
-end
-
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,2,3);
+EbN0 = logspace(-0.4,0.8,10);
 
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
@@ -121,7 +102,7 @@ for i=1:length(EbN0)
     for j=1:length(symb_tx_noisy)/(2*blocklength)
         j
         received = soft_decoder_log(H,symb_tx_noisy((j-1)*blocklength*2+1:j*blocklength*2,1)',35,sigma);
-        received=received';
+        
         bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; %to take only the information bits (not the redudancy)
         %here we take only the second part of each decoded block since it
         %contains the message without redundancy

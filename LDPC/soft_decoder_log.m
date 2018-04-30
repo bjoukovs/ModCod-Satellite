@@ -5,15 +5,6 @@ function out=soft_decoder_log(H,y,maxit,sigma)
     
     %ATTENTION PRENDRE DIRECTEMENT LES SYMBOLES BPSK (partie réelle)
     %(-2*symboles) erreur sur le signe, prendre le moins
-    
-    %Translate 0 into -1
-    for i=1:length(y)
-
-        if y(i)==0
-            y(i)=-1;
-        end
-
-    end
 
      [row,col]=size(H);
      
@@ -25,7 +16,7 @@ function out=soft_decoder_log(H,y,maxit,sigma)
      R = zeros(col,row);
      
      %[R] Creating the set of column location of the 1 in H, for each row
-     collocs = {}
+     collocs = {};
      for i=1:row
          collocs{i} = [];
         for j=1:col
@@ -36,7 +27,7 @@ function out=soft_decoder_log(H,y,maxit,sigma)
      end
      
      %[C] Creating the set of row location of the 1 in H, for each column
-     rowlocs = {}
+     rowlocs = {};
      for j=1:col
          rowlocs{j} = [];
         for i=1:row
@@ -47,17 +38,15 @@ function out=soft_decoder_log(H,y,maxit,sigma)
      end
      
      %Initialise step
-     for i=1:row
-         for j=1:col
-            if H(i,j)==1
-               Q(i,j) = 2*y(i)/sigma^2; 
+     for j=1:row %for each check node
+         for i=1:col %for each verification node
+            if H(j,i)==1
+               Q(j,i) = -2*y(i)/sigma^2;
+               LCI(i) = Q(j,i);
             end
          end
      end
-     
-      %Log-likelyhood ratio
-    PI = 1./(1+exp(2*c./sigma^2));
-    LCI = log10((1-PI)./PI);
+    
      
      
      %Start iterating
@@ -70,53 +59,57 @@ function out=soft_decoder_log(H,y,maxit,sigma)
         %Decision
         LQ = zeros(col,1);
         
-        %step 2
-        for i=1:row
-            for j=1:length(collocs{i})
+        %step 2 : update the check nodes responses
+        for j=1:row     %for each check node j
+            for i=1:length(collocs{j})  %for each verification node connected to the check node j
                
-               sub_collocs = [collocs{i}(1:j-1) collocs{i}(j+1:end)];
-               sum1 = sum(phi(BETA(i,sub_collocs)));
-               p1 = prod(nonzeros(ALPHA(i,sub_collocs)))
+               sub_collocs = [collocs{j}(1:i-1) collocs{j}(i+1:end)];
+               sum1 = sum(phi(BETA(j,sub_collocs)));
                
-               R(collocs{i}(j),i) = p1*phi(sum1);
+               p1 = prod(nonzeros(ALPHA(j,sub_collocs)));
+               
+               R(collocs{j}(i),j) = p1*phi(sum1);
                 
             end
         end
         
-        %step3
-        for j=1:col
-           for i=1:length(rowlocs{j})
+        %step3 : update the verification nodes responses to the check nodes
+        for i=1:col     %for each verification node
+           for j=1:length(rowlocs{i})   %for each check node connected to the verification node i
               
-               sub_rowlocs = [rowlocs{j}(1:i-1) rowlocs{j}(i+1:end)];
-               sum1 = sum(R(j,sub_rowlocs)); % TO VERIFY
-               Q(rowlocs{j}(i),j) = LCI(i) + sum1;
+               sub_rowlocs = [rowlocs{i}(1:j-1) rowlocs{i}(j+1:end)];
+               sum1 = sum(R(i, sub_rowlocs));
+               Q(rowlocs{i}(j),i) = LCI(i) + sum1;
                
                
            end  
         end
         
-        %step4
+        %step4 : Decision
         for i=1:col
-           LQ(i) = LCI(i) + sum(R(i,rowlocs{i})) 
+           LQ(i) = LCI(i) + sum(R(i,:));
         end
         
-        %step5
+        %step5 : Decision
         for i=1:col
            if LQ(i)<0
               c(i) = 1;
-              out(i)=1;
+              %out(i)=1;
            else
                c(i)=-1;
-               out(i)=0;
+               %out(i)=0;
            end
         end
     
+         % DEMAPPING
+        out = demapping(c',1,'pam');
         
-        if nnz(mod(H*out',2))==0
+        if nnz(mod(H*out,2))==0
             break;
         end
         
      end
+    
 
 
 end
