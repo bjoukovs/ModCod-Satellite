@@ -9,7 +9,7 @@ function out=hard_decoder(H,y,maxit,subH_cell)
     %c{k} = [valeur,nbre0,nbre1]
     c={};
     for k=1:length(y)
-        c{k}=[y(k) 0 0]; %[valeur,nbre0,nbre1]
+        c{k}=[y(k) 0]; %[valeur,counter]
     end
     
     nextInput = y;
@@ -22,8 +22,16 @@ function out=hard_decoder(H,y,maxit,subH_cell)
     % car il faut calculer la réponse des variable nodes vers les check
     % nodes sans tenir compte de la dernière réponse
     
+    %nextInputMat = zeros();
+    %out_save = [];
+    
     while it<maxit
         it = it + 1;
+        %out_save = out;
+        
+        for k=1:length(y)
+            c{k}(2)=0; %[valeur,counter]
+        end
         
         %for k=1:length(y)
         %    c{k}(1)=nextInput(k); %[valeur,nbre0,nbre1]
@@ -31,8 +39,7 @@ function out=hard_decoder(H,y,maxit,subH_cell)
         
         % We do a loop for every Hij which is non null (corresponds to one
         % message that need to be sent back to the validation node j)
-        for i=1:row
-            
+        for i=1:row     
             for j=1:col
                 if H(i,j)==1
                     
@@ -46,9 +53,9 @@ function out=hard_decoder(H,y,maxit,subH_cell)
                     parcheck = mod(subH*subY',2);
                     
                     if parcheck==0
-                       c{j}(2) = c{j}(2) + 1;
+                       c{j}(2) = c{j}(2) - 1;
                     else                       
-                        c{j}(3) = c{j}(3) + 1;
+                        c{j}(2) = c{j}(2) + 1;
                     end
                 end
             end
@@ -58,18 +65,21 @@ function out=hard_decoder(H,y,maxit,subH_cell)
 
         %Majority rule
         for k=1:col
-            decision = ( c{k}(1) + c{k}(3) )/ (1 + c{k}(2) + c{k}(3)); 
-            decision = round(decision);
-            
-            %Si decision=0.5, il faut discrininer par rapport à c{k}(1)
-            
-            %moyenne du nombre de 0 et de 1, arrondi
-            %if nbre1 > nbre0 then decision = 1 thanks to the rounding, and
-            %it means that the node was told more time to be a 1 and so final value
-            %of the variable node is a 1. If nbre1 < nbre0 then decision = 0 and
-            %final value of variable node is 0.
+            if c{k}(2)<0
+                decision=0;
+            elseif c{k}(2)>0
+                decision=1;
+            else
+                decision=c{k}(1); %if equal number of 0 or 1, take the received value 
+            end
             out(k) = decision;
         end
+        
+        
+%         nextInput = repmat(out,col,1);
+%         for e = 1:row
+%            nextInput(,e) =  out_save(e);
+%         end
         
         nextInput = out;
 
