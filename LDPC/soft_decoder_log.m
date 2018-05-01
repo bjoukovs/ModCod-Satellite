@@ -1,4 +1,4 @@
-function out=soft_decoder_log(H,y,maxit,sigma)
+function out=soft_decoder_log(H,y,maxit,sigma,collocs, collocs_excl, rowlocs, rowlocs_excl)
 
     %Definition of phi function
     phi = @(x) log10((exp(x)+1)./(exp(x)-1));
@@ -14,28 +14,6 @@ function out=soft_decoder_log(H,y,maxit,sigma)
      
      Q = zeros(row,col);
      R = zeros(col,row);
-     
-     %[R] Creating the set of column location of the 1 in H, for each row
-     collocs = {};
-     for i=1:row
-         collocs{i} = [];
-        for j=1:col
-            if H(i,j)==1
-               collocs{i} = [collocs{i} j]; 
-            end
-        end
-     end
-     
-     %[C] Creating the set of row location of the 1 in H, for each column
-     rowlocs = {};
-     for j=1:col
-         rowlocs{j} = [];
-        for i=1:row
-            if H(i,j)==1
-               rowlocs{j} = [rowlocs{j} i]; 
-            end
-        end
-     end
      
      %Initialise step
      for j=1:row %for each check node
@@ -63,7 +41,8 @@ function out=soft_decoder_log(H,y,maxit,sigma)
         for j=1:row     %for each check node j
             for i=1:length(collocs{j})  %for each verification node connected to the check node j
                
-               sub_collocs = [collocs{j}(1:i-1) collocs{j}(i+1:end)];
+               %sub_collocs = [collocs{j}(1:i-1) collocs{j}(i+1:end)];
+               sub_collocs = collocs_excl{j,i};
                sum1 = sum(phi(BETA(j,sub_collocs)));
                
                p1 = prod(nonzeros(ALPHA(j,sub_collocs)));
@@ -77,7 +56,8 @@ function out=soft_decoder_log(H,y,maxit,sigma)
         for i=1:col     %for each verification node
            for j=1:length(rowlocs{i})   %for each check node connected to the verification node i
               
-               sub_rowlocs = [rowlocs{i}(1:j-1) rowlocs{i}(j+1:end)];
+               %sub_rowlocs = [rowlocs{i}(1:j-1) rowlocs{i}(j+1:end)];
+               sub_rowlocs = rowlocs_excl{i,j};
                sum1 = sum(R(i, sub_rowlocs));
                Q(rowlocs{i}(j),i) = LCI(i) + sum1;
                

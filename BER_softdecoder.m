@@ -14,8 +14,8 @@ ts = 1/fs;
 M = 2;
 bits_per_symbol = log2(M)
 
-blocklength=32;
-bits = randi(2,bits_per_symbol*4000*blocklength,1); %100k symbols
+blocklength=128;
+bits = randi(2,bits_per_symbol*4000*blocklength,1); % > 500k symbols
 
 bits = bits -1;
 
@@ -51,15 +51,18 @@ symb_tx = upsample(symb_tx,U);
 %figure;
 %stem(symb_tx)
 
+%% Acceleration : already compute the row and col locs
+
+[collocs collocs_excl rowlocs rowlocs_excl] = get_row_col_locs(H);
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,1.4,18);
+EbN0 = logspace(-0.4,1,14);
 
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
 %EbN0=1:1:100;
-BER = zeros(length(EbN0),1);
+%BER = zeros(length(EbN0),1);
 for i=1:length(EbN0)
     %BER_moyen(i)=0;
     %for j=1:10
@@ -93,25 +96,26 @@ for i=1:length(EbN0)
     
 
     % DEMAPPING
-    %bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
+    bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
     
     %%%%%%%%%%%%%%% CHANNEL DECODING %%%%%%%%%%%%%%%%%%%%
     % Now we have to cut in blocks of 2*128 bits to take the redundancy
     bits_rx_dec=[];
 
-    for j=1:length(symb_tx_noisy)/(2*blocklength)
-        j
-        received = soft_decoder_log(H,symb_tx_noisy((j-1)*blocklength*2+1:j*blocklength*2,1)',35,sigma);
-        
-        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; %to take only the information bits (not the redudancy)
-        %here we take only the second part of each decoded block since it
-        %contains the message without redundancy
-    end
+%     for j=1:length(symb_tx_noisy)/(2*blocklength)
+%         j
+%         received = soft_decoder_log(H,symb_tx_noisy((j-1)*blocklength*2+1:j*blocklength*2,1)',10,sigma,collocs, collocs_excl, rowlocs, rowlocs_excl);
+%         
+%         bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; %to take only the information bits (not the redudancy)
+%         %here we take only the second part of each decoded block since it
+%         %contains the message without redundancy
+%     end
     
     
 
     % Check error
-    BER(i) = bit_error_rate(bits, bits_rx_dec);
+    %BER(i) = bit_error_rate(bits, bits_rx_dec);
+    BER(i,2) = bit_error_rate(bits_rx, encoded_message);
     %BER_moyen(i)=BER_moyen(i)+bit_error_rate(bits, bits_rx);
     %end
     %BER_moyen(i)=BER_moyen(i)/5;
