@@ -14,8 +14,8 @@ ts = 1/fs;
 M = 16;
 bits_per_symbol = log2(M)
 
-blocklength=32;
-bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+blocklength=128;
+bits = randi(2,bits_per_symbol*250*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -76,8 +76,8 @@ end
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,1,6);
-%EbN0 = [10^0.8]
+EbN0 = logspace(0,2,10);
+%EbN0 = [10^1.5]
 
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
@@ -124,7 +124,7 @@ for i=1:length(EbN0)
 
     for j=1:length(bits_rx)/(2*blocklength)
         j
-        received = hard_decoderv2(H,bits_rx((j-1)*blocklength*2+1:j*blocklength*2,1)',10,subH_cell);
+        received = hard_decoderv3(H,bits_rx((j-1)*blocklength*2+1:j*blocklength*2,1)',10,subH_cell);
         received = received';
         bits_rx_dec=[bits_rx_dec;received(blocklength+1:end)]; %to take only the information bits (not the redudancy)
         %here we take only the second part of each decoded block since it
@@ -134,7 +134,8 @@ for i=1:length(EbN0)
     
 
     % Check error
-    BER(i) = bit_error_rate(bits, bits_rx_dec);
+    BER(i,1) = bit_error_rate(bits_rx_dec, bits);
+    BER(i,2) = bit_error_rate(encoded_message, bits_rx);
     %BER_moyen(i)=BER_moyen(i)+bit_error_rate(bits, bits_rx);
     %end
     %BER_moyen(i)=BER_moyen(i)/5;
