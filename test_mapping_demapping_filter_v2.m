@@ -11,16 +11,17 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 2;
+M = 16;
 bits_per_symbol = log2(M)
 
 blocklength=32;
-bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
 
 bits = bits -1;
+
 
 %%%% CHANNEL CODING %%%%%
 encoded_message=[];
@@ -30,6 +31,8 @@ for i=1:length(bits)/blocklength %we divide the bits in blocks of 128
     [codedbits, H] = makeParityChk(bits((i-1)*blocklength+1:i*blocklength,1), H0, 0); 
     encoded_message = [encoded_message;codedbits;bits((i-1)*blocklength+1:i*blocklength,1)];
 end
+
+
 % We divided the message in blocks of 128 bits, added 128 bits of
 % redundancy, thus we end with a sequence encoded_message that is twice as
 % long as the bits
@@ -73,7 +76,8 @@ end
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,2,3);
+EbN0 = logspace(-0.4,1,6);
+%EbN0 = [10^0.8]
 
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)
@@ -91,6 +95,7 @@ for i=1:length(EbN0)
     
     % Adding noise
     [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(encoded_message));
+
     % length(encoded_message) or length(bits) in last argument of AWNG?
     
     %figure;
@@ -109,20 +114,19 @@ for i=1:length(EbN0)
     symb_tx_noisy = downsample(symb_tx_noisy,U);
     %figure;
     %stem(symb_tx_noisy)
-    
 
     % DEMAPPING
-    %bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
+    bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
     
     %%%%%%%%%%%%%%% CHANNEL DECODING %%%%%%%%%%%%%%%%%%%%
     % Now we have to cut in blocks of 2*128 bits to take the redundancy
     bits_rx_dec=[];
 
-    for j=1:length(symb_tx_noisy)/(2*blocklength)
+    for j=1:length(bits_rx)/(2*blocklength)
         j
-        received = soft_decoder_log(H,symb_tx_noisy((j-1)*blocklength*2+1:j*blocklength*2,1)',35,sigma);
-        received=received';
-        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end,1)]; %to take only the information bits (not the redudancy)
+        received = hard_decoderv2(H,bits_rx((j-1)*blocklength*2+1:j*blocklength*2,1)',10,subH_cell);
+        received = received';
+        bits_rx_dec=[bits_rx_dec;received(blocklength+1:end)]; %to take only the information bits (not the redudancy)
         %here we take only the second part of each decoded block since it
         %contains the message without redundancy
     end

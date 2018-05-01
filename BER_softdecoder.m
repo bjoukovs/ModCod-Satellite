@@ -15,7 +15,7 @@ M = 2;
 bits_per_symbol = log2(M)
 
 blocklength=32;
-bits = randi(2,bits_per_symbol*1000*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*4000*blocklength,1); %100k symbols
 
 bits = bits -1;
 
@@ -54,7 +54,7 @@ symb_tx = upsample(symb_tx,U);
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(-0.4,0.8,10);
+EbN0 = logspace(-0.4,1.4,18);
 
 %EbN0 = logspace(0,8,5);
 %EbN0 = linspace(0,100,100)

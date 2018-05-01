@@ -92,9 +92,3 @@ function out=hard_decoder(H,y,maxit,subH_cell)
     end
 
 end
-
-            
-        
-            
-    
- 
