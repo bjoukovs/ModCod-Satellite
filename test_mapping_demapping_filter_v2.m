@@ -15,7 +15,7 @@ M = 16;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;

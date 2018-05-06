@@ -1,4 +1,4 @@
-% Same main but with variation of the number of iterations of hard decoding
+%% Same main as test_mapping_demapping_filter_v2 but with variation of the number of iterations of hard decoding
 
 clear all;
 close all;
@@ -17,7 +17,7 @@ M = 16;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*1000*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
