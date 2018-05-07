@@ -92,7 +92,7 @@ EbN0 = logspace(0,2,10);
 %%%%% To investigate CFO only %%%%%
 % CFO=0:10:90;
 % CFO=deg2rad(CFO);
-CFO=0:10^(-6)*fs:10*10^(-6)*fs %here with the fs after upsampling
+CFO=
 phi0=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% To investigate phi0 only %%%%%
