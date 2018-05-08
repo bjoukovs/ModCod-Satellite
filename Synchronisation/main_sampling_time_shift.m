@@ -58,7 +58,6 @@ symb_tx = mapping(bits,bits_per_symbol,modulation);
 U=100;
 symb_tx_upsampled = upsample(symb_tx,U);
 
-t_original = linspace(0,length(symb_tx_upsampled)*ts/U,length(symb_tx_upsampled));
 n_original = 1:U:length(symb_tx_upsampled);
 
 sample_time_shift = linspace(0,0.05,10); %expressed in the form of a percentage of the original sampling time
@@ -90,12 +89,9 @@ EbN0 = logspace(0,2,10);
 
 BER = zeros(length(EbN0),length(sample_time_shift));
 
-t=[0:ts:(length(symb_tx)-1)*ts]';
-
 
 for p=1:length(sample_time_shift)
     
-    T_sampling = ts/U*bits_per_symbol;
     n_sampling = n_original + ones(1,length(n_original))*U*sample_time_shift(p);
     
     for i=1:length(EbN0)

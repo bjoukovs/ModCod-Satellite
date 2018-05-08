@@ -1,11 +1,10 @@
-%% Same main as test_mapping_demapping_filter_v2 but with CFO included
+%% Same main as test_mapping_demapping_filter_v2 but with sampling time shift included
 %% ATTENTION here no channel coding
-%% ATTENTION DOES NOT WORK FOR PAM FOR THE MOMENT, because of the symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0))
+%% ATTENTION DOES NOT WORK FOR PAM FOR THE MOMENT
 %% because PAM decoder does not handle complex numbers
 
 clear all;
 close all;
-addpath('LDPC');
 addpath('..'); %parent directory
 
 format long
@@ -17,11 +16,11 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 16;
+M = 2;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*50*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -50,20 +49,19 @@ bits = bits -1;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-%modulation = 'pam';
-modulation = 'qam';
+modulation = 'pam';
+%modulation = 'qam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-U=4;
-%figure;
-%stem(symb_tx)
-symb_tx = upsample(symb_tx,U);
-%figure;
-%stem(symb_tx)
+U=100;
+symb_tx_upsampled = upsample(symb_tx,U);
 
-%BER_moyen=[];
+n_original = 1:U:length(symb_tx_upsampled);
+
+%sample_time_shift = linspace(0,0.05,10); %expressed in the form of a percentage of the original sampling time
+sample_time_shift=0.05;
 
 %% Computing different parts of H with removed columns
 % [row,col]=size(H);
@@ -89,67 +87,37 @@ EbN0 = logspace(0,2,10);
 %EbN0 = linspace(0,100,100)
 %EbN0=1:1:100;
 
-%%%%% To investigate CFO only %%%%%
-% CFO=0:10:90;
-% CFO=deg2rad(CFO);
-CFO=
-phi0=0;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%% To investigate phi0 only %%%%%
-% CFO=0;
-% phi0=0:10:90;
-% phi0=deg2rad(phi0);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+BER = zeros(length(EbN0),length(sample_time_shift));
 
-BER = zeros(length(EbN0),length(CFO));
 
-t=[0:ts:(length(symb_tx)-1)*ts]';
-
-%for p=1:length(phi0)
-for p=1:length(CFO)
-    p
+for p=1:length(sample_time_shift)
+    
+    n_sampling = n_original + ones(1,length(n_original))*U*sample_time_shift(p);
+    
     for i=1:length(EbN0)
-        %BER_moyen(i)=0;
-        %for j=1:10
+        
         % First half root filter
         beta = 0.3; %imposed
-        symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs);
-        %figure;
-        %stem(symb_tx_filtered)
-
+        symb_tx_filtered = halfroot_opti_v2(symb_tx_upsampled,beta,T,fs);
 
         % Adding noise
         [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
-
-        % length(encoded_message) or length(bits) in last argument of AWNG?
-
-        %figure;
-        %stem(symb_tx_noisy)
-
-        %% Reception: multiplying with exp(j*CFO*t+phi0) to take the effect CFO and phase offset (cf. slide 10)
-        %%%%% To investigate CFO only %%%%%
-        symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
-        % 1 symbol is taken at each sampling time ts
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %%%%% To investigate phi0 only %%%%%
-        %symb_tx_noisy = symb_tx_noisy.*exp(1j.*phi0(1,p));
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Second half root filter
         beta = 0.3; %imposed
 
         symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
-        %figure;
-        %stem(symb_tx_noisy)
-
-
-        % DOWNSAMPLING
-        symb_tx_noisy = downsample(symb_tx_noisy,U);
-        %figure;
-        %stem(symb_tx_noisy)
+        
+        
+        % DOWNSAMPLING TAKING WITH GARDNER
+        sampled_signal = gardner(0.0001,symb_tx_noisy,U,sample_time_shift(p)*U+1,n_original);
+        
+        %sampled_signal = downsample(symb_tx_noisy,U);
+       
+        
 
         % DEMAPPING
-        bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
+        bits_rx = demapping(sampled_signal.',bits_per_symbol,modulation);
 
         %%%%%%%%%%%%%%% CHANNEL DECODING %%%%%%%%%%%%%%%%%%%%
         % Now we have to cut in blocks of 2*128 bits to take the redundancy
@@ -177,7 +145,7 @@ for p=1:length(CFO)
 end
 
 figure;
-for p=1:length(CFO)
+for p=1:length(sample_time_shift)
     semilogy(10*log10(EbN0),BER(:,p));
     %figure(25);semilogy(10*log10(EbN0),BER_moyen);
     xlabel("Eb/N0 (dB)");
