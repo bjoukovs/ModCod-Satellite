@@ -1,7 +1,5 @@
 %% Same main as test_mapping_demapping_filter_v2 but with SCO included
 %% ATTENTION here no channel coding
-%% ATTENTION DOES NOT WORK FOR PAM FOR THE MOMENT
-%% because PAM decoder does not handle complex numbers
 
 clear all;
 close all;

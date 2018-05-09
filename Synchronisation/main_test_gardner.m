@@ -12,7 +12,7 @@ format long
 fsymbol=1e6;
 T=1/fsymbol;
 
-U=4;
+U=100;
 fs = fsymbol*U;
 ts = 1/fs;
 
@@ -20,7 +20,7 @@ M = 2;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*50*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -55,13 +55,13 @@ modulation = 'pam';
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-U=100;
+%U=100;
 symb_tx_upsampled = upsample(symb_tx,U);
 
 n_original = 1:U:length(symb_tx_upsampled);
 
 %sample_time_shift = linspace(0,0.05,10); %expressed in the form of a percentage of the original sampling time
-sample_time_shift=0.05;
+sample_time_shift=0.25;
 
 %% Computing different parts of H with removed columns
 % [row,col]=size(H);
@@ -103,14 +103,17 @@ for p=1:length(sample_time_shift)
         % Adding noise
         [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
 
+        %[symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,10),M,fs,modulation,length(bits));
+
         % Second half root filter
         beta = 0.3; %imposed
 
         symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
         
+        symb_tx_noisy = circshift(symb_tx_noisy,round(sample_time_shift(p)*U));
         
         % DOWNSAMPLING TAKING WITH GARDNER
-        sampled_signal = gardner(0.0001,symb_tx_noisy,U,sample_time_shift(p)*U+1,n_original);
+        [sampled_signal,eps_ev] = gardner(0.002,symb_tx_noisy,U,1,n_original);
         
         %sampled_signal = downsample(symb_tx_noisy,U);
        
@@ -134,8 +137,12 @@ for p=1:length(sample_time_shift)
 
 
 
+        % Check Gardner: evolution of eps_tild
+        figure(5);plot(eps_ev); hold on;
         % Check error
+        
         BER(i,p) = bit_error_rate(bits_rx, bits);
+        
         %BER(i,2) = bit_error_rate(encoded_message, bits_rx);
         %BER_moyen(i)=BER_moyen(i)+bit_error_rate(bits, bits_rx);
         %end

@@ -12,15 +12,12 @@ function [output,eps_ev] = gardner(kappa,symb_rx,upsampling,n0,nsampling)
     
     i=0;
     
-    while  n0 + (i+1)*upsampling <= length(symb_rx) && i < length(symb_rx)/upsampling
+    while  n0 + (i+1)*upsampling + eps_tild*upsampling <= length(symb_rx) && i < length(symb_rx)/upsampling
         
-        n = n0 + i*upsampling - eps_tild*upsampling;
-        % attention here we decrease n with -eps_tild*upsampling, and not
-        % +eps_tild*upsampling because the eps_tild has to counteract the
-        % time shift and not to reinforce it
+        n = n0 + i*upsampling + eps_tild*upsampling;
         
         sample0 = getSample(symb_rx, n);
-        sample1 = getSample(symb_rx, n + upsampling);
+        sample1 = getSample(symb_rx, n + upsampling + eps_tild);
         sample_middle = getSample(symb_rx, n + upsampling/2);
 
         eps_tild = eps_tild + 2*kappa*real(sample_middle*(conj(sample1)-conj(sample0)));
