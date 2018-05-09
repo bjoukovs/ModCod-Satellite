@@ -1,0 +1,14 @@
+function output = intoFrames(symb,frame_length,pilot_length, pilot)
+
+    nframes = ceil(length(symb)/frame_length);
+    frames = reshape(symb,[nframes,frame_length]);
+    
+    pilot = 
+
+end
+
+
+function output = makePilot(modulation,pilot_length)
+
+
+end
