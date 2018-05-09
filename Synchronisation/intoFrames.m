@@ -6,7 +6,9 @@ function output = intoFrames(symb,frame_length, pilot)
     pilot_length = length(pilot);
     symb_length = length(symb);
 
-    nframes = ceil(symb_length/frame_length);
+    nframes = symb_length/frame_length; %attention has to be an INTEGER, else the reshape will not work
+                                        % because it will need a different
+                                        % nbre of symbols than in symb
     frames = reshape(symb, [frame_length,nframes]);
     
     pilot = repmat(pilot, [1,nframes]);

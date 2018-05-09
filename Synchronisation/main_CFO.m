@@ -1,7 +1,7 @@
 %% Same main as test_mapping_demapping_filter_v2 but with CFO included
 %% ATTENTION here no channel coding
-%% ATTENTION DOES NOT WORK FOR PAM FOR THE MOMENT, because of the symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0))
-%% because PAM decoder does not handle complex numbers
+
+% 
 
 clear all;
 close all;
@@ -92,7 +92,8 @@ EbN0 = logspace(0,2,10);
 %%%%% To investigate CFO only %%%%%
 % CFO=0:10:90;
 % CFO=deg2rad(CFO);
-CFO=0:10^(-6)*fs:10*10^(-6)*fs %here with the fs after upsampling
+f_carrier=2e9; %2GHz
+CFO=0:10^(-6)*f_carrier:10*10^(-6)*f_carrier; 
 phi0=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%% To investigate phi0 only %%%%%
@@ -113,7 +114,7 @@ for p=1:length(CFO)
         %for j=1:10
         % First half root filter
         beta = 0.3; %imposed
-        symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs);
+        symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs,U);
         %figure;
         %stem(symb_tx_filtered)
 
@@ -127,21 +128,28 @@ for p=1:length(CFO)
         %stem(symb_tx_noisy)
 
         %% Reception: multiplying with exp(j*CFO*t+phi0) to take the effect CFO and phase offset (cf. slide 10)
-        %%%%% To investigate CFO only %%%%%
+        t=[0:ts:(length(symb_tx_noisy)-1)*ts]';
+        %%%%% Introduce CFO only %%%%%
         symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
         % 1 symbol is taken at each sampling time ts
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %%%%% To investigate phi0 only %%%%%
+        %%%%% Introduce phi0 only %%%%%
         %symb_tx_noisy = symb_tx_noisy.*exp(1j.*phi0(1,p));
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Second half root filter
         beta = 0.3; %imposed
 
-        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
-        %figure;
-        %stem(symb_tx_noisy)
-
+        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
+        t=[0:ts:(length(symb_tx_noisy)-1)*ts]';
+        %%%% Remove the extra samples due to the 2 convolutions %%%%
+        RRCTaps=25*U+1;
+        symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        %%%% Compensate rotation but not ISI due to modified filter (cf. slide 14) %%%%
+        symb_tx_noisy = symb_tx_noisy.*exp(-1j.*(CFO(1,p).*t(RRCTaps:end-RRCTaps+1)+phi0));
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % DOWNSAMPLING
         symb_tx_noisy = downsample(symb_tx_noisy,U);
@@ -150,7 +158,7 @@ for p=1:length(CFO)
 
         % DEMAPPING
         if strcmp(modulation,'pam')
-            symb_tx_noisy=real(symb_tx_noisy)
+            symb_tx_noisy=real(symb_tx_noisy) %if modulation is pam the demapping cannot take complex number
         end
         bits_rx = demapping(symb_tx_noisy,bits_per_symbol,modulation);
 

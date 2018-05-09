@@ -110,7 +110,9 @@ for p=1:length(sample_time_shift)
 
         symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
         
+        %%%% Adding t0 shift %%%%
         symb_tx_noisy = circshift(symb_tx_noisy,round(sample_time_shift(p)*U));
+        %%%%%%%%%%%%%%%%%%%%%%%%%
         
         % DOWNSAMPLING TAKING WITH GARDNER
         [sampled_signal,eps_ev] = gardner(0.002,symb_tx_noisy,U,1,n_original);

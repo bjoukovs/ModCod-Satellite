@@ -88,7 +88,7 @@ for i=1:length(EbN0)
     %for j=1:10
     % First half root filter
     beta = 0.3; %imposed
-    symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs);
+    symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs,U);
     %figure;
     %stem(symb_tx_filtered)
     
@@ -105,7 +105,13 @@ for i=1:length(EbN0)
     % Second half root filter
     beta = 0.3; %imposed
     
-    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
+    symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
+    
+    %%%% Removing the extra samples due to the 2 convolutions %%%%
+    RRCTaps=25*U+1;
+    symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     %figure;
     %stem(symb_tx_noisy)
     
