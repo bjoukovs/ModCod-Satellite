@@ -6,11 +6,11 @@ function delta_f_tild=diff_corr(symb_rx,pilot,K,CFO,T)
 % downsampling
 
 N=length(pilot); %N is the pilot length 
-k=1:K;
+
 Dk=zeros(K,N); %each row of the matrix will be for a certain k
-for i=1:1:K
-    for n=1:N
-        Dk(i,n)=(1/(N-i))*exp(-1j*CFO*i*T).*sum(conj(symb_rx(n+i:n+N-1)).*symb_rx(n:n+N-1-i).*pilot(1+i:N).*conj(pilot(1:N-i)));
+for k=1:K
+    for n=0:N-1
+        Dk(k,n+1)=(1/(N-k))*exp(-1j*2*pi*CFO*k*T).*sum(conj(symb_rx(n+k:n+N)).*symb_rx(n+1:n+N-k+1).*pilot(k:N).*conj(pilot(1:N-k+1)));
     end
 end
 %now we have to take the VERTICAL SUM, i.e. the sum on k for a given n
@@ -22,9 +22,9 @@ temp1=sum(temp1,1); %vertical sum --> gives a vector
 % fact = linspace(2*pi*T,2*pi*T*K,K);
 te = 0;
 for j=1:K
-    te =te + phase(Dk(j,n_tild))/(2*pi*T*j);
+    te =te + phase(Dk(j,n_tild))/j;
 end
-delta_f_tild = (-1/K)*te;
+delta_f_tild = (-1/(K))*te/(2*pi*T);
 % temp2 = temp2./(fact.');
 % delta_f_tild=(-1/K)*sum(temp2); %=CFO estimate
 
