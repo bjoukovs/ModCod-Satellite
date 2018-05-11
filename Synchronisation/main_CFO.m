@@ -17,11 +17,11 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 16;
+M = 4;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*500*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -50,8 +50,8 @@ bits = bits -1;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-modulation = 'pam';
-%modulation = 'qam';
+%modulation = 'pam';
+modulation = 'qam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
@@ -148,7 +148,7 @@ for p=1:length(CFO)
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         %%%% Compensate rotation but not ISI due to modified filter (cf. slide 14) %%%%
-        symb_tx_noisy = symb_tx_noisy.*exp(-1j.*(CFO(1,p).*t(RRCTaps:end-RRCTaps+1)+phi0));
+        symb_tx_noisy = symb_tx_noisy.*exp(-1j.*(CFO(1,p).*t(RRCTaps/2:end-3/2*RRCTaps+1)));
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % DOWNSAMPLING
@@ -175,8 +175,6 @@ for p=1:length(CFO)
 %             %contains the message without redundancy
 %         end
 
-
-
         % Check error
         BER(i,p) = bit_error_rate(bits_rx, bits);
         %BER(i,2) = bit_error_rate(encoded_message, bits_rx);
@@ -186,6 +184,9 @@ for p=1:length(CFO)
         i
     end
 end
+
+figure;scatter(real(symb_tx_noisy),imag(symb_tx_noisy));
+%figure;plot(symb_tx_noisy)
 
 figure;
 for p=1:length(CFO)
