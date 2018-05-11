@@ -9,8 +9,8 @@ N=length(pilot); %N is the pilot length
 k=1:K;
 Dk=zeros(K,N); %each row of the matrix will be for a certain k
 for i=1:K
-    for n=1:length(Dk)
-        Dk(n)=(1/(N-i))*exp(-1j*CFO*i*T).*sum(conj(symb_rx(n+i:n+N-1)).*conj(symb_rx(n:n+N-1-i)).*pilot(1+i:N).*conj(pilot(1:N-i)));
+    for n=1:N
+        Dk(i,n)=(1/(N-i))*exp(-1j*CFO*i*T).*sum(conj(symb_rx(n+i:n+N-1)).*conj(symb_rx(n:n+N-1-i)).*pilot(1+i:N).*conj(pilot(1:N-i)));
     end
 end
 %now we have to take the VERTICAL SUM, i.e. the sum on k for a given n

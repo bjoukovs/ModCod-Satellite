@@ -167,7 +167,7 @@ figure;
 for p=1:length(sample_time_delta)
     semilogy(10*log10(EbN0),BER(:,p));
     %figure(25);semilogy(10*log10(EbN0),BER_moyen);
-    xlabel("Eb/N0 (dB)");
-    ylabel("Bit error rate");
+    xlabel('Eb/N0 (dB)');
+    ylabel('Bit error rate');
     hold on;
 end
