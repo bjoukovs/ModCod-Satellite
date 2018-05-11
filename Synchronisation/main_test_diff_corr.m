@@ -90,7 +90,8 @@ symb_tx = upsample(symb_tx,U);
 
 
 %% Loop for different bit energies +  calculating BER
-EbN0 = logspace(0,2,10);
+%EbN0 = logspace(0,2,10);
+EbN0 = 100;
 %EbN0 = [10^1.5]
 
 %EbN0 = logspace(0,8,5);
@@ -134,7 +135,9 @@ for p=1:length(CFO)
 
         %% Reception: multiplying with exp(j*CFO*t+phi0) to take the effect CFO and phase offset (cf. slide 10)
         %%%%% To investigate CFO only %%%%%
-        t=[0:ts:(length(symb_tx_noisy)-1)*ts]';
+        
+        RRCTaps=25*U+1;
+        t=[-(RRCTaps/2)*ts : ts : ((length(symb_tx_noisy)-1)-RRCTaps/2)*ts]';
         symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
         % 1 symbol is taken at each sampling time ts
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
