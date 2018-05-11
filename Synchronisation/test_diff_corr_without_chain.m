@@ -32,7 +32,6 @@ f_carrier=2e9; %2GHz
 CFO=0:10^(-6)*f_carrier:10*10^(-6)*f_carrier;
 phi0=0;
 delta_f_hat=zeros(1,length(CFO));
-Tp = 1/(2*f_carrier);
 for p=1:length(CFO)
     p
     t=[0:ts:(length(symb_tx)-1)*ts]';
@@ -42,7 +41,7 @@ for p=1:length(CFO)
     K=8;
     b1=1;
     b2=check_length+1;
-    delta_f_hat(1,p) = diff_corr(symb_tx(b1:b2),pilot,K,CFO(1,p),Tp);
+    delta_f_hat(1,p) = diff_corr(symb_tx(b1:b2),pilot,K,CFO(1,p),T);
 end  
 diff_CFO=CFO-delta_f_hat;
 figure;plot(1:length(CFO),diff_CFO);
