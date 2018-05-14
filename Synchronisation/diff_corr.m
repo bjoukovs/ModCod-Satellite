@@ -11,6 +11,7 @@ Dk=zeros(K,N); %each row of the matrix will be for a certain k
 for k=0:K-1
     for n=0:N-1
         Dk(k+1,n+1)=(1/(N-k))*exp(-1j*2*pi*CFO*k*T).*sum(conj(symb_rx(n+k+1:n+N)).*symb_rx(n+1:n+N-k).*pilot(k+1:N).*conj(pilot(1:N-k)));
+        %Dk(k+1,n+1)=(1/(N-k))*sum(conj(symb_rx(n+k+1:n+N)).*symb_rx(n+1:n+N-k).*pilot(k+1:N).*conj(pilot(1:N-k)));
     end
 end
 %now we have to take the VERTICAL SUM, i.e. the sum on k for a given n

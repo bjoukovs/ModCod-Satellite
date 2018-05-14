@@ -16,11 +16,11 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 16;
+M = 4;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*10*blocklength,1); %100k symbols
+bits = randi(2,bits_per_symbol*100*blocklength,1); %25,6k bitsl
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -60,7 +60,7 @@ symb_tx_upsampled = upsample(symb_tx,U);
 
 n_original = 1:U:length(symb_tx_upsampled);
 
-sample_time_shift = linspace(0,0.05,10); %expressed in the form of a percentage of the original sampling time
+sample_time_shift = 0:0.01:0.05; %expressed in the form of a percentage of the original sampling time
 
 
 %% Computing different parts of H with removed columns
@@ -92,13 +92,13 @@ BER = zeros(length(EbN0),length(sample_time_shift));
 
 for p=1:length(sample_time_shift)
     
-    n_sampling = n_original + ones(1,length(n_original))*U*sample_time_shift(p);
+    %n_sampling = n_original + ones(1,length(n_original))*U*sample_time_shift(p);
     
     for i=1:length(EbN0)
         
         % First half root filter
         beta = 0.3; %imposed
-        symb_tx_filtered = halfroot_opti_v2(symb_tx_upsampled,beta,T,fs);
+        symb_tx_filtered = halfroot_opti_v2(symb_tx_upsampled,beta,T,fs,U);
 
         % Adding noise
         [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
@@ -106,31 +106,35 @@ for p=1:length(sample_time_shift)
         % Second half root filter
         beta = 0.3; %imposed
 
-        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
+        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
 
-
+        RRCTaps=25*U+1;
+        symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
+        
+        %Sample time shift
+        symb_tx_noisy = circshift(symb_tx_noisy,round(sample_time_shift(p)*U));
 
         % DOWNSAMPLING TAKING INTO ACCOUNT THE SCO
-        sampled_signal = zeros(length(symb_tx),1);
+        sampled_signal = downsample(symb_tx_noisy,U);
         
-        for j=1:length(n_sampling)
-           if ceil(n_sampling(j)) <= length(symb_tx_noisy)
-               
-               n_low = floor(n_sampling(j));
-               n_high = ceil(n_sampling(j));
-               
-               %case if we fall just right on a sample
-               if n_low == n_high
-                   sampled_signal(j) = symb_tx_noisy(n_low);
-               else
-                   %we have to interpolate linearly
-                   s_low = symb_tx_noisy(n_low);
-                   s_high = symb_tx_noisy(n_high);
-                   
-                   sampled_signal(j) = s_low + (s_high-s_low) * (n_sampling(j)-n_low);
-               end
-           end
-        end
+%         for j=1:length(n_sampling)
+%            if ceil(n_sampling(j)) <= length(symb_tx_noisy)
+%                
+%                n_low = floor(n_sampling(j));
+%                n_high = ceil(n_sampling(j));
+%                
+%                %case if we fall just right on a sample
+%                if n_low == n_high
+%                    sampled_signal(j) = symb_tx_noisy(n_low);
+%                else
+%                    %we have to interpolate linearly
+%                    s_low = symb_tx_noisy(n_low);
+%                    s_high = symb_tx_noisy(n_high);
+%                    
+%                    sampled_signal(j) = s_low + (s_high-s_low) * (n_sampling(j)-n_low);
+%                end
+%            end
+%         end
         
 
         % DEMAPPING
