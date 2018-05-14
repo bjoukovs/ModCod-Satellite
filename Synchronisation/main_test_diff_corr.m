@@ -15,7 +15,7 @@ U=100;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 16;
+M = 4;
 bits_per_symbol = log2(M)
 
 SIZE_PILOT=4*bits_per_symbol; %nbre of symbols in pilot
@@ -51,8 +51,8 @@ bits = bits -1;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-modulation = 'pam';
-%modulation = 'qam';
+%modulation = 'pam';
+modulation = 'qam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
