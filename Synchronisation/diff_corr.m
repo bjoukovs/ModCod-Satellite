@@ -1,4 +1,4 @@
-function delta_f_tild=diff_corr(symb_rx,pilot,K,CFO,T)
+function [delta_f_tild, n_tild]=diff_corr(symb_rx,pilot,K,CFO,T)
 % attention T is symbol duration
 % k is the width of the time difference for the differential correlation
 % attention the n in the formula slide 56 is 1,2,3,4,5 and not
