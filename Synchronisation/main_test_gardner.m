@@ -27,17 +27,6 @@ bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
 
 bits = bits -1;
 
-
-%%%% CHANNEL CODING %%%%%
-% encoded_message=[];
-% H0 = makeLdpc(blocklength,2*blocklength,0,1,3);   %128*256 H -> encodes 128 bits
-% for i=1:length(bits)/blocklength %we divide the bits in blocks of 128
-%     i
-%     [codedbits, H] = makeParityChk(bits((i-1)*blocklength+1:i*blocklength,1), H0, 0); 
-%     encoded_message = [encoded_message;codedbits;bits((i-1)*blocklength+1:i*blocklength,1)];
-% end
-
-
 % We divided the message in blocks of 128 bits, added 128 bits of
 % redundancy, thus we end with a sequence encoded_message that is twice as
 % long as the bits
@@ -49,36 +38,26 @@ bits = bits -1;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-modulation = 'pam';
-%modulation = 'qam';
-
+%modulation = 'pam';
+modulation = 'qam';
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-%U=100;
 symb_tx_upsampled = upsample(symb_tx,U);
-
 n_original = 1:U:length(symb_tx_upsampled);
-
-sample_time_shift = linspace(0,0.1,6); %expressed in the form of a percentage of the original sampling time
-%sample_time_shift=0.25;
+sample_time_shift = linspace(0,0.1,5); %expressed in the form of a percentage of the original sampling time
 
 %% Loop for different bit energies +  calculating BER
 %EbN0 = logspace(0,2,10);
-EbN0 = [10^25]
-EbN0 = [10^10]
-
-%EbN0 = logspace(0,8,5);
-%EbN0 = linspace(0,100,100)
-%EbN0=1:1:100;
-
+%EbN0 = [10^10]
+EbN0 = [10^2]
+%EbN0 = [10^0.5]
 BER = zeros(length(EbN0),length(sample_time_shift));
-
+std_vect = zeros(1,length(sample_time_shift));
 
 for p=1:length(sample_time_shift)
     
     n_sampling = n_original + ones(1,length(n_original))*U*sample_time_shift(p);
-    
     for i=1:length(EbN0)
         
         % First half root filter
@@ -87,27 +66,21 @@ for p=1:length(sample_time_shift)
 
         % Adding noise
         [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
-
-        %[symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,10),M,fs,modulation,length(bits));
         
-        %%%%%% To add the CFO impqct
-        
-        f_carrier=2e9; %2GHz
-        CFO=0:10^(-6)*f_carrier:10*10^(-6)*f_carrier;
-        phi0=0;
-        delta_f_tild=zeros(1,length(CFO));
-        
-        RRCTaps=25*U+1;
-        t=[-(RRCTaps/2)*ts : ts : ((length(symb_tx_noisy)-1)-RRCTaps/2)*ts]';
-        symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
-        
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
+%         %%%%% To add the CFO impqct
+%         f_carrier=2e9; %2GHz
+%         CFO=0:10^(-6)*f_carrier:10*10^(-6)*f_carrier;
+%         phi0=0;
+%         delta_f_tild=zeros(1,length(CFO));
+%         RRCTaps=25*U+1;
+%         t=[-(RRCTaps/2)*ts : ts : ((length(symb_tx_noisy)-1)-RRCTaps/2)*ts]';
+%         symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
+%         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Second half root filter
         beta = 0.3; %imposed
-
         symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
+        
         %%%% Removing the extra samples due to the 2 convolutions %%%%
         RRCTaps=25*U+1;
         symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
@@ -120,26 +93,29 @@ for p=1:length(sample_time_shift)
         kappa = 0.002/2;
         [sampled_signal,eps_ev] = gardner(kappa,symb_tx_noisy,U,1,n_original);
         
-        %sampled_signal = downsample(symb_tx_noisy,U);
-
         % DEMAPPING
         bits_rx = demapping(sampled_signal.',bits_per_symbol,modulation);
 
         % Check Gardner: evolution of eps_tild
-        figure(5);plot(eps_ev); hold on;
+        figure(5);plot(eps_ev);  title('Convergence of the epsilon for different value of error weight, EbN0 = 5dB');
+        ylabel('compensate error weight (sample time shift, % of the symbol frequency)'); xlabel('Samples');hold on;
+        legend('eps = 0','eps = 0.025','eps = 0.05','eps = 0.075','eps = 1');
+        
+        % Standart deviation
+        std_vect(p) = std(eps_ev);
+        
         % Check error
-        
         BER(i,p) = bit_error_rate(bits_rx, bits);
-        
         i
     end
 end
 
-figure;
-for p=1:length(sample_time_shift)
-    semilogy(10*log10(EbN0),BER(:,p));
-    %figure(25);semilogy(10*log10(EbN0),BER_moyen);
-    xlabel('Eb/N0 (dB)');
-    ylabel('Bit error rate');
-    hold on;
-end
+figure; plot(sample_time_shift,std_vect); title('Standard deviation Eb/N0 = 5dB');
+xlabel('error weight (sample time shift, % of the symbol frequency)'); ylabel('Standard deviation');
+% for p=1:length(sample_time_shift)
+%     semilogy(10*log10(EbN0),BER(:,p));
+%     %figure(25);semilogy(10*log10(EbN0),BER_moyen);
+%     xlabel('Eb/N0 (dB)');
+%     ylabel('Bit error rate');
+%     hold on;
+% end
