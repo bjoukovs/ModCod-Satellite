@@ -34,11 +34,20 @@ modulation = 'qam';
 
 %% EBN0
 
-EbN0 = logspace(-0.5,1.5,10);
+EbN0 = logspace(-0.1,1,10);
 %EbN0 = 100;
 %EbN0 = [10^1.5]
 
-n_tild_stdev = zeros(length(EbN0),length(SIZE_PILOT));
+f_carrier=2e9; %2GHz
+CFO = [0 10];
+CFO=CFO*f_carrier/1e6;
+
+epsilon = [0 0.02];
+
+        
+
+n_tild_stdev = zeros(length(EbN0),length(CFO));
+cfo_stdev = zeros(length(EbN0),length(CFO));
 %n_tild_stdev = zeros(length(EbN0),length(K));
 
 for pl=1:length(SIZE_PILOT)
@@ -47,22 +56,20 @@ for pl=1:length(SIZE_PILOT)
 
 
         %%%%% To investigate CFO only %%%%%
-        f_carrier=2e9; %2GHz
-        CFO = [0 10];
-        CFO=CFO*f_carrier/1e6;
+
         phi0=0;
         delta_f_tild=zeros(1,length(CFO));
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         BER = zeros(length(EbN0),length(CFO));
 
-        %for p=1:length(CFO)
+        for p=1:length(CFO)
         %    p
 
             for i=1:length(EbN0)
 
-                NEXP = 20;
-                for exp=1:NEXP
+                NEXP = 50;
+                for xp=1:NEXP
 
                     bits = randi(2,bits_per_symbol*2*LENGTH_FRAME(pl),1); %100k symbols
                     bits = bits -1;
@@ -84,6 +91,7 @@ for pl=1:length(SIZE_PILOT)
                     % First half root filter
                     beta = 0.3; %imposed
                     symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs,U);
+                    
 
                     % Adding noise
                     [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
@@ -93,8 +101,11 @@ for pl=1:length(SIZE_PILOT)
                     %%%%% To investigate CFO only %%%%%
 
                     RRCTaps=25*U+1;
-                    %t=[-(RRCTaps/2)*ts : ts : ((length(symb_tx_noisy)-1)-RRCTaps/2)*ts]';
-                    %symb_tx_noisy = symb_tx_noisy.*exp(1j.*(CFO(1,p).*t+phi0));
+                    t=[-(RRCTaps/2)*ts : ts : ((length(symb_tx_noisy)-1)-RRCTaps/2)*ts]';
+                    symb_tx_noisy = symb_tx_noisy.*exp(2*pi*j.*(CFO(1,p).*t+phi0));
+                    
+                    %Time shift error
+                    symb_tx_noisy = circshift(symb_tx_noisy,round(epsilon(p)*U));
 
 
                     %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,15 +132,17 @@ for pl=1:length(SIZE_PILOT)
                     [deltaCFO, ntild] = diff_corr(symb_tx_noisy(b1:b2),pilot,K(kl),0,T);
 
                     n0 = 1; %Expected ToA sample
-                    n_tild_stdev(i,pl) =  n_tild_stdev(i,pl) + (ntild - n0)^2;
+                    n_tild_stdev(i,p) =  n_tild_stdev(i,p) + (ntild - n0)^2;
+                    cfo_stdev(i,p) =  cfo_stdev(i,p) + (deltaCFO - CFO(1,p))^2;
 
-                    exp
+                    xp
                 end
-                n_tild_stdev(i,pl) = sqrt(n_tild_stdev(i,pl)/NEXP);
+                n_tild_stdev(i,p) = sqrt(n_tild_stdev(i,p)/NEXP);
+                cfo_stdev(i,p) = sqrt(cfo_stdev(i,p)/NEXP)*f_carrier/1e6;
                 i
             end
             
-        %end
+        end
 
 
     end
@@ -137,3 +150,4 @@ for pl=1:length(SIZE_PILOT)
 end
 
 figure;plot(10*log10(EbN0),n_tild_stdev);
+figure;plot(10*log10(EbN0),cfo_stdev);
