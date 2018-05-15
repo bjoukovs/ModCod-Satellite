@@ -23,43 +23,55 @@ SIZE_PILOT = [8 16 32 64];
 %SIZE_PILOT=4*bits_per_symbol; %nbre of symbols in pilot
 LENGTH_FRAME=300-SIZE_PILOT;
 
+%blocklength=128;
+bits = randi(2,bits_per_symbol*10*LENGTH_FRAME,1); %100k symbols
+% ATTENTION put more than bits_per_symbol*100*blocklength
+%bits = ones(bits_per_symbol*10,1); %1k symbols
+%bits(5) = 0;
+
+bits = bits -1;
+
+
+%%%% CHANNEL CODING %%%%%
+% encoded_message=[];
+% H0 = makeLdpc(blocklength,2*blocklength,0,1,3);   %128*256 H -> encodes 128 bits
+% for i=1:length(bits)/blocklength %we divide the bits in blocks of 128
+%     i
+%     [codedbits, H] = makeParityChk(bits((i-1)*blocklength+1:i*blocklength,1), H0, 0); 
+%     encoded_message = [encoded_message;codedbits;bits((i-1)*blocklength+1:i*blocklength,1)];
+% end
+
+
+% We divided the message in blocks of 128 bits, added 128 bits of
+% redundancy, thus we end with a sequence encoded_message that is twice as
+% long as the bits
+
+% On peut tout calculer en une fois en mettant les séquences de bits en
+% colonnes dans une matrice (reshape)
+
+%ATTENTION H remains the same
+%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
 %modulation = 'pam';
 modulation = 'qam';
 
-
-%% EBN0
-
-EbN0 = logspace(0,2,10);
-%EbN0 = 100;
-%EbN0 = [10^1.5]
-    
-    
-    
-
-n_tild = zeros(length(EbN0),length(SIZE_PILOT));
+symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 
-for pl=1:length(SIZE_PILOT)
-    
-    bits = randi(2,bits_per_symbol*10*LENGTH_FRAME(pl),1); %100k symbols
-    % ATTENTION put more than bits_per_symbol*100*blocklength
-    %bits = ones(bits_per_symbol*10,1); %1k symbols
-    %bits(5) = 0;
+%%EBN0
 
-    bits = bits -1;
+n_tild = zeros(length())
+
+
+for pl=1:length(PILOT_LENGTH)
     %% INSERTING PILOTS
 
-    pilot=makePilot(modulation,bits_per_symbol,SIZE_PILOT(pl));
-    symb_tx=intoFrames(symb_tx,LENGTH_FRAME(pl),pilot); %attention now symb_tx is longer
+    pilot=makePilot(modulation,bits_per_symbol,SIZE_PILOT);
+    symb_tx=intoFrames(symb_tx,LENGTH_FRAME,pilot); %attention now symb_tx is longer
 
     bits_with_pilots=demapping(symb_tx,bits_per_symbol,modulation); %save the bits of the symbol containing pilots,
     % if comparison is needed after
-    
-    
-    %MAPPING
-    symb_tx = mapping(bits,bits_per_symbol,modulation);
 
     %% OVERSAMPLING = replicating each symbol U times
     
@@ -138,8 +150,8 @@ for pl=1:length(SIZE_PILOT)
         end
     %end
 
-    %diff_CFO(pl)=CFO-delta_f_tild;
+    diff_CFO(pl)=CFO-delta_f_tild;
     
 end
 
-figure;semilogy(10*log10(EbN0),n_tild);
+figure;plot(1:length(CFO),diff_CFO);

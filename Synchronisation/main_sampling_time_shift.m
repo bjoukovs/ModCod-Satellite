@@ -12,11 +12,11 @@ format long
 fsymbol=1e6;
 T=1/fsymbol;
 
-U=4;
+U=100;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 4;
+M = 16;
 bits_per_symbol = log2(M)
 
 blocklength=128;
@@ -49,18 +49,17 @@ bits = bits -1;
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-%modulation = 'pam';
-modulation = 'qam';
+modulation = 'pam';
+%modulation = 'qam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
 %% OVERSAMPLING = replicating each symbol U times
-U=100;
 symb_tx_upsampled = upsample(symb_tx,U);
 
 n_original = 1:U:length(symb_tx_upsampled);
 
-sample_time_shift = 0:0.01:0.05; %expressed in the form of a percentage of the original sampling time
+sample_time_shift = [0 0.01 0.02 0.05 0.1]; %expressed in the form of a percentage of the original sampling time
 
 
 %% Computing different parts of H with removed columns
