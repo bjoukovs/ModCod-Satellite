@@ -45,7 +45,7 @@ symb_tx = mapping(bits,bits_per_symbol,modulation);
 %% OVERSAMPLING = replicating each symbol U times
 symb_tx_upsampled = upsample(symb_tx,U);
 n_original = 1:U:length(symb_tx_upsampled);
-sample_time_shift = 0.1;%linspace(0,0.1,5); %expressed in the form of a percentage of the original sampling time
+sample_time_shift = linspace(0,0.1,5); %expressed in the form of a percentage of the original sampling time
 
 %% Loop for different bit energies +  calculating BER
 %EbN0 = logspace(0,2,10);
@@ -90,10 +90,7 @@ for p=1:length(sample_time_shift)
         %%%%%%%%%%%%%%%%%%%%%%%%%
         
         % DOWNSAMPLING TAKING WITH GARDNER
-        kappa = 0.001; %first try
-        %kappa = 0.01; %seond try
-        %kappa = 0.05; %seond try
-        
+        kappa = 0.002/2;
         [sampled_signal,eps_ev] = gardner(kappa,symb_tx_noisy,U,1,n_original);
         
         % DEMAPPING
