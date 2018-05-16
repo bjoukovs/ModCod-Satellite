@@ -1,0 +1,86 @@
+clear all;
+close all;
+addpath('LDPC');
+addpath('..'); %parent directory
+
+format long
+
+fsymbol=1e6;
+T=1/fsymbol;
+
+U=100;
+fs = fsymbol*U;
+ts = 1/fs;
+
+M = 4;
+bits_per_symbol = log2(M)
+
+SIZE_PILOT=20; %nbre of symbols in pilot
+LENGTH_FRAME=300-SIZE_PILOT;
+
+bits = randi(2,bits_per_symbol*2*LENGTH_FRAME,1); %100k symbols
+bits = bits -1;
+
+%% MAPPING
+%modulation = 'pam';
+modulation = 'qam';
+
+symb_tx = mapping(bits,bits_per_symbol,modulation);
+
+%% INSERTING PILOTS
+
+pilot=makePilot(modulation,bits_per_symbol,SIZE_PILOT);
+symb_tx=intoFrames(symb_tx,LENGTH_FRAME,pilot); %attention now symb_tx is longer
+
+bits_with_pilots=demapping(symb_tx,bits_per_symbol,modulation); %save the bits of the symbol containing pilots,
+
+%% OVERSAMPLING = replicating each symbol U times
+symb_tx = upsample(symb_tx,U);
+
+%% Loop for different bit energies +  calculating BER
+EbN0 = logspace(0,1.6,8);
+CFO = 0;
+K = [2 8 16];
+
+for j=1:length(K)
+    j
+    std_of_error = zeros(1,length(EbN0));
+    error = zeros(20,length(EbN0));
+    for i=1:length(EbN0)
+        i
+        for exp=1:20
+            exp
+            %1st halfroot filter
+            beta = 0.3;
+            symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs,U);
+            %Noise
+            [symb_tx_noisy sigma] = AWNG(symb_tx_filtered,EbN0(1,i),M,fs,modulation,length(bits));
+            %2nd half root filter
+            symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
+            %%%% Removing the extra samples due to the 2 convolutions %%%%
+            RRCTaps=25*U+1;
+            symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
+            % DOWNSAMPLING
+            symb_tx_noisy = downsample(symb_tx_noisy,U);
+
+            %Check cor
+            check_length=SIZE_PILOT+LENGTH_FRAME;        
+            b1=1;
+            b2=check_length+1;
+            n0=1;
+            [~,ntild] = diff_corr(symb_tx_noisy(b1:b2),pilot,K(j),CFO,T);
+            %No CFO, error = delta
+            error(exp,i) = ntild-n0;
+        end
+        %std_of_error(i) = std(error(:,i));
+        error=error.^2;
+        std_of_error(i) = sqrt(sum(error(:,i),1))/20;
+        %n_tild_final(n,:)=sqrt(sum(n_tild,1))/NBRE_EXP;
+    end
+    %std_of_error = std_of_error/2e9*1e6;
+    std_of_error=std_of_error*U;
+    figure(1);plot(10*log10(EbN0),std_of_error);title('ToA error as a function of K');
+    ylabel('Time error stdev [samples]'); xlabel('Eb/N0');hold on;
+    legend('K = 2','K = 8','K = 16');
+end
+
