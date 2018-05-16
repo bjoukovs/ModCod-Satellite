@@ -15,10 +15,10 @@ ts = 1/fs;
 M = 4;
 bits_per_symbol = log2(M)
 
-SIZE_PILOT=4*bits_per_symbol; %nbre of symbols in pilot
+SIZE_PILOT=20; %nbre of symbols in pilot
 LENGTH_FRAME=300-SIZE_PILOT;
 
-bits = randi(2,bits_per_symbol*10*LENGTH_FRAME,1); %100k symbols
+bits = randi(2,bits_per_symbol*2*LENGTH_FRAME,1); %100k symbols
 bits = bits -1;
 
 %% MAPPING
@@ -45,10 +45,10 @@ K = [2 8 16];
 for j=1:length(K)
     j
     std_of_error = zeros(1,length(EbN0));
-    error = zeros(1,5);
+    error = zeros(20,length(EbN0));
     for i=1:length(EbN0)
         i
-        for exp=1:5
+        for exp=1:20
             exp
             %1st halfroot filter
             beta = 0.3;
@@ -67,12 +67,13 @@ for j=1:length(K)
             check_length=SIZE_PILOT+LENGTH_FRAME;        
             b1=1;
             b2=check_length+1;
-            delta_f_tild = diff_corr(symb_tx_noisy(b1:b2),pilot,K(j),CFO,T);
-            %No CFO, error = deta
+            [delta_f_tild ntild] = diff_corr(symb_tx_noisy(b1:b2),pilot,K(j),CFO,T);
+            %No CFO, error = delta
             error(exp,i) = delta_f_tild;
         end
         std_of_error(i) = std(error(:,i));
     end
+    std_of_error = std_of_error/2e9*1e6;
     figure(1);plot(10*log10(EbN0),std_of_error);title('CFO error as a function of K');
     ylabel('frequency error stdev [ppm]'); xlabel('Eb/N0');hold on;
     legend('K = 2','K = 8','K = 16');
