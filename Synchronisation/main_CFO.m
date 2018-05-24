@@ -2,6 +2,7 @@
 %% ATTENTION here no channel coding
 clear all;
 close all;
+addpath('..');
 
 format long
 

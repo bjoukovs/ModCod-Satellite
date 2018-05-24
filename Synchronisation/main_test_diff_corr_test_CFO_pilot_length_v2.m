@@ -37,7 +37,7 @@ size_pilot=[10 20 40];
 EbN0 = logspace(0,1.6,8);
 delta_f_tild_final=zeros(length(size_pilot),length(EbN0));
 
-NBRE_EXP=5;
+NBRE_EXP=10;
 
 delta_f_tild=zeros(NBRE_EXP,length(EbN0));
 
@@ -103,6 +103,6 @@ figure;
 %     %diff_CFO=abs(zeros(length(delta_f_tild(q,:)))-delta_f_tild(q,:));
 %     plot(EbN0,abs(diff_CFO)); hold on;
 % end
-plot(10*log10(EbN0),abs(delta_f_tild_final));
+plot(10*log10(EbN0),abs(delta_f_tild_final_ppm));
 xlabel('EbN0 [dB]');
 ylabel('Error on CFO');
