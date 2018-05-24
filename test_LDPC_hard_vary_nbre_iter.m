@@ -75,7 +75,7 @@ for i=1:row
     end
 end
 
-nbre_iter_hard=[1 3 5 10 20 30];
+nbre_iter_hard=[1 3 5 10 20];
 EbN0 = logspace(0,2.5,25);
 BER = zeros(length(EbN0),length(nbre_iter_hard)); %the pth column contains the BER for the pth number of iteration of hard decoding
 %% Loop with different hard decoding nbre of iterations
@@ -95,7 +95,7 @@ for p=1:length(nbre_iter_hard)
         %for j=1:10
         % First half root filter
         beta = 0.3; %imposed
-        symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs);
+        symb_tx_filtered = halfroot_opti_v2(symb_tx,beta,T,fs,U);
         %figure;
         %stem(symb_tx_filtered)
 
@@ -112,11 +112,15 @@ for p=1:length(nbre_iter_hard)
         % Second half root filter
         beta = 0.3; %imposed
 
-        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs);
+        symb_tx_noisy = halfroot_opti_v2(symb_tx_noisy,beta,T,fs,U);
         %figure;
         %stem(symb_tx_noisy)
 
-
+        %%%% Removing the extra samples due to the 2 convolutions %%%%
+        RRCTaps=25*U+1;
+        symb_tx_noisy=symb_tx_noisy(RRCTaps:end-RRCTaps+1);
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
         % DOWNSAMPLING
         symb_tx_noisy = downsample(symb_tx_noisy,U);
         %figure;
