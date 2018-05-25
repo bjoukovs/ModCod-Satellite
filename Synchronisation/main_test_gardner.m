@@ -48,9 +48,9 @@ n_original = 1:U:length(symb_tx_upsampled);
 sample_time_shift = 0.1;%linspace(0,0.1,5); %expressed in the form of a percentage of the original sampling time
 
 %% Loop for different bit energies +  calculating BER
-%EbN0 = logspace(0,2,10);
+EbN0 = logspace(0,2,10);
 %EbN0 = [10^10]
-EbN0 = [10^2]
+%EbN0 = [10^2]
 %EbN0 = [10^0.5]
 BER = zeros(length(EbN0),length(sample_time_shift));
 std_vect = zeros(1,length(sample_time_shift));

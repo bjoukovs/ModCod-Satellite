@@ -13,11 +13,11 @@ U=4;
 fs = fsymbol*U;
 ts = 1/fs;
 
-M = 16;
+M = 4;
 bits_per_symbol = log2(M)
 
 blocklength=128;
-bits = randi(2,bits_per_symbol*100*blocklength,1); %100k symbols
+bits = randi(2,2*bits_per_symbol*100*blocklength,1); %100k symbols
 % ATTENTION put more than bits_per_symbol*100*blocklength
 %bits = ones(bits_per_symbol*10,1); %1k symbols
 %bits(5) = 0;
@@ -46,8 +46,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% MAPPING
-%modulation = 'pam';
-modulation = 'qam';
+modulation = 'pam';
+%modulation = 'qam';
 
 symb_tx = mapping(encoded_message,bits_per_symbol,modulation);
 
@@ -75,7 +75,7 @@ for i=1:row
     end
 end
 
-nbre_iter_hard=[1 3 5 10 20];
+nbre_iter_hard=[1 10 30];
 EbN0 = logspace(0,2.5,25);
 BER = zeros(length(EbN0),length(nbre_iter_hard)); %the pth column contains the BER for the pth number of iteration of hard decoding
 %% Loop with different hard decoding nbre of iterations
@@ -152,10 +152,10 @@ for p=1:length(nbre_iter_hard)
         %BER_moyen(i)=BER_moyen(i)/5;
         i
     end
-
-    figure;
-    semilogy(10*log10(EbN0),BER(:,p));hold on;
-    %figure(25);semilogy(10*log10(EbN0),BER_moyen);
-    xlabel("Eb/N0 (dB)"); hold on;
-    ylabel("Bit error rate"); hold on;
 end
+
+figure;
+semilogy(10*log10(EbN0),BER);hold on;
+%figure(25);semilogy(10*log10(EbN0),BER_moyen);
+xlabel("Eb/N0 (dB)"); hold on;
+ylabel("Bit error rate"); hold on;
