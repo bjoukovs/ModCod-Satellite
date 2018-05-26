@@ -7,12 +7,26 @@ function [delta_f_tild, n_tild]=diff_corr(symb_rx,pilot,K,CFO,T)
 
 N=length(pilot); %N is the pilot length 
 
+
+
 Dk=zeros(K,N); %each row of the matrix will be for a certain k
+phases = zeros(K,N);
 for k=0:K-1
+    teplot = [];
+    teplot2 = [];
     for n=0:N-1
-        Dk(k+1,n+1)=(1/(N-k))*exp(-1j*2*pi*CFO*k*T).*sum(conj(symb_rx(n+k+1:n+N)).*symb_rx(n+1:n+N-k).*pilot(k+1:N).*conj(pilot(1:N-k)));
+        a = sum(conj(symb_rx(n+k+1:n+N)).*symb_rx(n+1:n+N-k).*pilot(k+1:N).*conj(pilot(1:N-k)));
+        phases(k+1, n+1) = phase(a);
+        Dk(k+1,n+1)=(1/(N-k))*exp(-1j*2*pi*CFO*k*T).*a;
+        phases(k+1, n+1) = phases(k+1, n+1) + phase(exp(-1j*2*pi*CFO*k*T));
+        teplot = [teplot phase(Dk(k+1,n+1))];
+        teplot2 = [teplot2 phases(k+1, n+1)];
         %Dk(k+1,n+1)=(1/(N-k))*sum(conj(symb_rx(n+k+1:n+N)).*symb_rx(n+1:n+N-k).*pilot(k+1:N).*conj(pilot(1:N-k)));
     end
+    figure(10);
+    hold on;
+    plot(teplot-teplot2);
+    hold off;
 end
 %now we have to take the VERTICAL SUM, i.e. the sum on k for a given n
 temp1=abs(Dk);
@@ -22,10 +36,17 @@ temp1=sum(temp1,1); %vertical sum --> gives a vector
 % temp2=angle(Dk(:,n_tild));
 % fact = linspace(2*pi*T,2*pi*T*K,K);
 te = 0;
+
 for j=1:K-1
-    te =te + phase(Dk(j+1,n_tild))/j;
+    %te =te + phase(Dk(j+1,n_tild))/j;
+    te =te + phases(j+1,n_tild)/j;
+    %teplot = [teplot te];
 end
 delta_f_tild = (-1/(K))*te/(2*pi*T);
+figure(10);
+hold on;
+plot(teplot);
+hold off;
 % temp2 = temp2./(fact.');
 % delta_f_tild=(-1/K)*sum(temp2); %=CFO estimate
 

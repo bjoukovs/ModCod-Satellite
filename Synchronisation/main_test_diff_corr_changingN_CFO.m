@@ -64,7 +64,7 @@ for pl=1:length(SIZE_PILOT)
 
             for i=1:length(EbN0)
 
-                NEXP = 20;
+                NEXP = 5;
                 for exp=1:NEXP
 
                     bits = randi(2,bits_per_symbol*2*LENGTH_FRAME(pl),1); %100k symbols

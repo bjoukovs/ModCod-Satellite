@@ -32,12 +32,12 @@ modulation = 'qam';
 
 symb_tx = mapping(bits,bits_per_symbol,modulation);
 
-size_pilot=[10 20 40];
+size_pilot=10%[10 20 40];
 
 EbN0 = logspace(0,1.6,8);
 delta_f_tild_final=zeros(length(size_pilot),length(EbN0));
 
-NBRE_EXP=10;
+NBRE_EXP=2;
 
 delta_f_tild=zeros(NBRE_EXP,length(EbN0));
 

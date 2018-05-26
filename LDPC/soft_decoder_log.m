@@ -39,7 +39,7 @@ function out=soft_decoder_log(H,y,maxit,sigma,collocs, collocs_excl, rowlocs, ro
         
         %step 2 : update the check nodes responses
         for j=1:row     %for each check node j
-            parfor i=1:length(collocs{j})  %for each verification node connected to the check node j
+            for i=1:length(collocs{j})  %for each verification node connected to the check node j
                
                %sub_collocs = [collocs{j}(1:i-1) collocs{j}(i+1:end)];
                sub_collocs = collocs_excl{j,i};
